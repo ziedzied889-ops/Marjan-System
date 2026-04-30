@@ -4,7 +4,7 @@ import base64
 
 # --- إعدادات الصفحة (تظهر في المتصفح) ---
 st.set_page_config(
-    page_title="نظام مرجان للأمن السيبراني",
+    page_title="Marjan Trace",
     page_icon="🛡️",
     layout="centered"
 )
