@@ -60,7 +60,7 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # --- الواجهة الرئيسية ---
-st.markdown("<h1>🛡️ نظام مرجان للأمن السيبراني</h1>", unsafe_allow_html=True)
+st.markdown("<h1>🛡️ Marjan Trace</h1>", unsafe_allow_html=True)
 st.markdown("<h3>التحليل الجنائي للروابط المشبوهة</h3>", unsafe_allow_html=True)
 st.write("\n")
 
