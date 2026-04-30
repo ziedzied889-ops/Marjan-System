@@ -120,6 +120,6 @@ if st.button("تشغيل الفحص الرقمي"):
 # التذييل
 st.markdown(f"""
     <div class="footer">
-        Eng. Zaid Al-Janabi | Morjan System
+        Eng. Zaid Al-Janabi | Marjan System
     </div>
     """, unsafe_allow_html=True)
