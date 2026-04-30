@@ -113,4 +113,4 @@ if st.button("تشغيل الفحص الرقمي"):
                 st.error(f"حدث خطأ تقني: {str(e)}")
 
 # --- التذييل ---
-st.markdown(f'<div class="footer">Eng. Zaid Al-Janabi | Marjan Trace System | University of Al-Maarif</div>', unsafe_allow_html=True)
+st.markdown(f'<div class="footer">Eng. Zaid Al-Janabi | Marjan Trace System</div>', unsafe_allow_html=True)
