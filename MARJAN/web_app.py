@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 # --- إعدادات الصفحة ---
 st.set_page_config(page_title="Marjan Trace", page_icon="🛡️", layout="centered")
 
-# --- التنسيق البصري (الدرع والشبكة الرقمية) ---
+# --- التنسيق البصري الاحترافي (نفس التصميم في Screenshot 2026-05-01 094203_2.png) ---
 st.markdown("""
     <style>
     [data-testid="stAppViewContainer"] {
@@ -53,39 +53,36 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- محرك التحليل الاستباقي "مرجان" (النسخة الأقوى) ---
-def enhanced_heuristic_analysis(url):
+# --- محرك التحليل الجنائي المتقدم (Extreme Heuristic Mode) ---
+def deep_security_analysis(url):
     alerts = []
     parsed_url = urlparse(url)
     domain = parsed_url.netloc.lower()
-    full_url = url.lower()
+    full_path = url.lower()
     
-    # 1. كشف انتحال العلامات التجارية (Brand Spoofing)
-    target_brands = ['facebook', 'google', 'microsoft', 'instagram', 'binance', 'apple', 'paypal', 'netflix', 'amazon']
-    for brand in target_brands:
-        if brand in domain and domain != f"{brand}.com" and domain != f"www.{brand}.com":
-            alerts.append(f"❗ محاولة تزييف: الرابط يحتوي على اسم '{brand}' ولكنه لا ينتمي للنطاق الرسمي.")
+    # 1. كشف النطاقات العشوائية (Entropy/Randomness Detection)
+    # الروابط الخبيثة غالباً تستخدم حروف وأرقام عشوائية مثل meritking1689
+    if re.search(r'\d{3,}', domain) or len(re.findall(r'[0-9]', domain)) > 4:
+        alerts.append("❗ نمط عشوائي مريب: اسم النطاق يحتوي على تسلسل رقمي مريب يُستخدم عادةً في الروابط المؤقتة.")
 
-    # 2. كشف الأنظمة الفرعية المريبة (Subdomain Tunneling)
-    if domain.count('.') > 3:
-        alerts.append("⚠️ بنية مريبة: وجود عدد كبير من النطاقات الفرعية، وهو أسلوب لتجاوز أنظمة الحماية.")
+    # 2. كشف الكلمات الجاذبة لعمليات الاحتيال (Scam/Phishing Keywords)
+    scam_keywords = ['king', 'win', 'prize', 'gift', 'bonus', 'claim', 'login', 'secure', 'verify', 'merit']
+    if any(word in full_path for word in scam_keywords):
+        alerts.append("⚠️ كلمات تحفيزية: الرابط يحتوي على مصطلحات تُستخدم في هندسة الاحتيال الاجتماعي.")
 
-    # 3. فحص الكلمات المفتاحية للهجمات (Phishing Triggers)
-    danger_keywords = [
-        'login', 'verify', 'account', 'secure', 'update', 'billing', 
-        'banking', 'password', 'wallet', 'token', 'auth', 'signin'
-    ]
-    if any(word in full_url for word in danger_keywords):
-        alerts.append("🚫 صيد بيانات: الرابط يحتوي على مصطلحات تُستخدم لاستدراج الضحايا لسرقة معلوماتهم.")
+    # 3. كشف النطاقات الفرعية الطويلة (Subdomain Analysis)
+    if domain.count('.') > 2:
+        alerts.append("❗ تضليل النطاق: استخدام نطاقات فرعية متعددة لإخفاء الهوية الحقيقية للموقع.")
 
-    # 4. كشف خدمات الاستضافة المجانية (Common Malicious Hosts)
-    free_hosts = ['canva.site', 'wixsite.com', 'web.app', 'firebaseapp.com', 'github.io', 'pages.dev', '000webhostapp.com']
-    if any(host in domain for host in free_hosts):
-        alerts.append(f"⚠️ استضافة مجانية: الموقع يعمل على خدمة ({domain})، مما يزيد من احتمالية كونه رابطاً مؤقتاً خبيثاً.")
+    # 4. كشف انتحال الهوية (Brand Mimicry)
+    common_targets = ['google', 'facebook', 'binance', 'apple', 'pay', 'bank']
+    for brand in common_targets:
+        if brand in domain and domain.split('.')[-2] != brand:
+            alerts.append(f"⚠️ شبهة انتحال: الرابط يحاول محاكاة العلامة التجارية '{brand}'.")
 
-    # 5. كشف التمويه بـ Punycode أو الرموز
-    if "xn--" in domain or "@" in domain:
-        alerts.append("❗ تمويه رقمي: تم رصد محاولة لإخفاء الهوية الحقيقية للنطاق باستخدام رموز مضللة.")
+    # 5. فحص خدمات الاستضافة المشبوهة
+    if any(host in domain for host in ['pages.dev', 'web.app', 'firebaseapp.com', 'github.io', '000webhost']):
+        alerts.append("🟡 بيئة استضافة مجانية: الموقع يعمل على خدمة استضافة غالباً ما تُستغل لإطلاق هجمات سريعة.")
 
     return alerts
 
@@ -99,27 +96,27 @@ if st.button("تشغيل الفحص الرقمي"):
     if not target_url:
         st.warning("⚠️ يرجى إدخال رابط للفحص")
     else:
-        # تنفيذ التحليل الاستباقي الخاص بنا أولاً
-        heuristic_results = enhanced_heuristic_analysis(target_url)
+        # تنفيذ التحليل الاستباقي المعمق أولاً
+        heuristic_results = deep_security_analysis(target_url)
         
         API_KEY = "22e03b88a0526e3d43b85556438c2d5895ccb0ef97771cff2471edab14cac85b"
         headers = {"x-apikey": API_KEY}
         url_id = base64.urlsafe_b64encode(target_url.encode()).decode().strip("=")
         
-        with st.spinner("> جاري تنفيذ بروتوكولات التحليل الجنائي..."):
+        with st.spinner("> جاري تنفيذ بروتوكولات الفحص والتحليل الجنائي..."):
             try:
                 response = requests.get(f"https://www.virustotal.com/api/v3/urls/{url_id}", headers=headers)
                 
                 if response.status_code == 404:
                     requests.post("https://www.virustotal.com/api/v3/urls", headers=headers, data={"url": target_url})
-                    time.sleep(6) 
+                    time.sleep(5) 
                     response = requests.get(f"https://www.virustotal.com/api/v3/urls/{url_id}", headers=headers)
 
                 st.markdown("---")
 
-                # عرض تنبيهات "مرجان" (هذا الجزء يحل مشكلة الروابط التي لم تُصنف بعد)
+                # عرض تنبيهات "مرجان" (هذا الجزء هو الذي سيكشف الرابط حتى لو كان "سليماً" عالمياً)
                 if heuristic_results:
-                    st.subheader("🕵️ نتائج تحليل محرك مرجان:")
+                    st.subheader("🕵️ نتائج تحليل محرك مرجان الاستباقي:")
                     for alert in heuristic_results:
                         st.markdown(f'<div class="heuristic-danger">{alert}</div>', unsafe_allow_html=True)
                 
@@ -127,21 +124,20 @@ if st.button("تشغيل الفحص الرقمي"):
                     data = response.json()['data']['attributes']
                     stats = data.get('last_analysis_stats', {})
                     malicious = stats.get('malicious', 0)
-                    suspicious = stats.get('suspicious', 0)
                     
-                    if malicious > 0 or suspicious > 0:
-                        st.error(f"🚨 تأكيد التهديد أمنياً! تم رصده بواسطة {malicious + suspicious} مختبر عالمي.")
+                    if malicious > 0:
+                        st.error(f"🚨 تأكيد التهديد! تم تصنيف الرابط كخطر بواسطة {malicious} مختبر عالمي.")
                     elif heuristic_results:
-                        st.warning("🟡 تحذير: المختبرات العالمية تعتبر الرابط سليماً حالياً، ولكن 'مرجان' ينصح بالحذر الشديد نظراً لخصائصه المريبة.")
+                        st.warning("⚠️ المختبرات العالمية لم ترصد تهديداً بعد، ولكن 'مرجان' ينصح بالحذر الشديد بناءً على الأنماط المريبة المكتشفة.")
                     else:
                         st.success("✅ الرابط يبدو آمناً بناءً على الفحص الحالي.")
                     
-                    # إعادة إضافة رابط مراجعة السلوك التقني العميق
+                    # رابط مراجعة السلوك التقني العميق
                     st.info(f"🔗 [لمراجعة السلوك التقني العميق اضغط هنا](https://www.virustotal.com/gui/url/{url_id}/behavior)")
                 else:
-                    st.error("⚠️ فشل في سحب البيانات العالمية؛ يرجى المحاولة لاحقاً.")
+                    st.error("⚠️ فشل في سحب البيانات العالمية.")
 
             except Exception as e:
-                st.error(f"حدث خطأ تقني في محرك الفحص.")
+                st.error(f"حدث خطأ في محرك الفحص.")
 
 st.markdown(f'<div class="footer">Eng. Zaid Al-Janabi | Marjan Trace System v2.5</div>', unsafe_allow_html=True)
