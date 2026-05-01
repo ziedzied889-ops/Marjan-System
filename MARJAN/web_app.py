@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 # --- إعدادات الصفحة ---
 st.set_page_config(page_title="Marjan Trace", page_icon="🛡️", layout="centered")
 
-# --- التنسيق البصري (الهوية البصرية المعتمدة - ثابتة تماماً) ---
+# --- التنسيق البصري (الهوية البصرية المعتمدة) ---
 st.markdown("""
     <style>
     [data-testid="stAppViewContainer"] {
@@ -30,42 +30,35 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- محرك التحليل الجنائي المتقدم (M.T Deep Forensic Core v5.9) ---
+# --- محرك التحليل الجنائي المتقدم (M.T Deep Forensic Core v6.0) ---
 def aggressive_marjan_logic(url):
     reasons = []
     domain = urlparse(url).netloc.lower()
     full_url = url.lower()
     path = urlparse(url).path.lower()
     
-    # 1. الذكاء اللغوي والمالي (Social Engineering Intelligence)
-    # تشمل كلمات الاستدراج، الديون، المراهنات، والجوائز بمختلف اللغات
+    # 1. الذكاء اللغوي والمالي
     social_threats = ['merit', 'king', 'bet', 'win', 'prize', 'bonus', 'claim', 'verify', 'update', 'vave', 'login', 'crypto', 'divida', 'debt', 'zero', 'loan', 'gift']
     if any(word in full_url for word in social_threats):
-        reasons.append("🚨 هندسة اجتماعية: تم رصد أنماط لغوية تستهدف استدراج المستخدم عبر وعود مالية أو أمنية زائفة.")
+        reasons.append("🚨 هندسة اجتماعية: رصد أنماط استدراج مالي/أمني في بنية الرابط.")
 
-    # 2. تحليل "خدعة التفاعل الموجه" (Directional Trigger Analysis)
-    # تحليل الروابط التي تطلب فعلاً محدداً (تصويت، مشاركة، فحص)
+    # 2. تحليل التفاعل الموجه
     if any(trigger in path for trigger in ['vote', 'event', 'active', 'check', 'pague']):
-         reasons.append("🚨 نمط تفاعل مشبوه: الرابط يطلب إجراءً فورياً (Action) من المستخدم، وهو أسلوب شائع في روابط التصيد المتطورة.")
+         reasons.append("🚨 نمط تفاعل مشبوه: الرابط يطلب إجراءً فورياً لتنفيذ هجوم تصيد.")
 
-    # 3. كشف "انتحال الكيانات" (Typosquatting & Brand Impersonation)
-    entities = ['bybit', 'binance', 'metamask', 'trust', 'paypal', 'netflix', 'apple', 'instagram', 'facebook', 'whatsapp', 'telegram', 'google', 'microsoft']
+    # 3. كشف انتحال الكيانات
+    entities = ['bybit', 'binance', 'metamask', 'trust', 'paypal', 'netflix', 'apple', 'instagram', 'facebook', 'whatsapp', 'telegram']
     for e in entities:
         if e in domain and domain != f"{e}.com":
-            reasons.append(f"⚠️ انتحال كيان رقمي: محاولة تمويه النطاق ليوحي بتبعيته لشركة '{e.capitalize()}' بشكل غير قانوني.")
+            reasons.append(f"⚠️ انتحال كيان: محاولة تمويه النطاق ليبدو كأنه تابع لشركة {e.capitalize()}.")
 
-    # 4. التحليل الهيكلي العميق (Structural Integrity Check)
-    # كشف الروابط التي تستخدم بروتوكولات قديمة أو نطاقات فرعية مبالغ فيها
+    # 4. التحليل الهيكلي
     if url.startswith("http://"):
-        reasons.append("🔓 ثغرة بروتوكول: الرابط يفتقر لتشفير SSL، مما يجعله قناة مفتوحة لتسريب البيانات الحساسة.")
+        reasons.append("🔓 ثغرة بروتوكول: الرابط يفتقر لتشفير SSL (غير آمن).")
     
-    # كشف النطاقات عالية الخطورة (TLD Analysis)
     dangerous_tlds = ['.mobi', '.br', '.xyz', '.top', '.zip', '.info']
     if any(domain.endswith(tld) for tld in dangerous_tlds):
-        reasons.append(f"❗ تصنيف النطاق: الرابط يستخدم نطاق (TLD) يشتهر باستضافة حملات الاحتيال والمحتوى الضار.")
-
-    if len(domain) > 20 or domain.count('.') > 2:
-        reasons.append("❗ تمويه هيكلي: استخدام بنية تقنية معقدة جداً للنطاق تهدف لتضليل أدوات الفحص التلقائية.")
+        reasons.append(f"❗ تصنيف النطاق: استخدام TLD يشتهر باستضافة حملات الاحتيال.")
 
     return list(set(reasons))
 
@@ -73,49 +66,48 @@ def aggressive_marjan_logic(url):
 st.markdown("<h1>🛡️ Marjan Trace</h1>", unsafe_allow_html=True)
 st.markdown("<h3 style='text-align:center; color:#D4AF37;'>نظام التحليل الجنائي الرقمي</h3>", unsafe_allow_html=True)
 
-target_url = st.text_input("", placeholder="أدخل الرابط المشبوه للتحليل الجنائي...")
+target_url = st.text_input("", placeholder="أدخل الرابط المشبوه للتحليل...")
 
 if st.button("تفعيل بروتوكول الكشف الذكي"):
     if target_url:
-        # الطبقة الأولى: التحليل الذاتي العميق لمرجان
-        marjan_alerts = aggressive_marjan_logic(target_url)
-        
-        # الطبقة الثانية: التحليل العالمي المتصل
+        # إعداد بيانات التحليل العالمي
         API_KEY = "22e03b88a0526e3d43b85556438c2d5895ccb0ef97771cff2471edab14cac85b"
         headers = {"x-apikey": API_KEY}
         url_id = base64.urlsafe_b64encode(target_url.encode()).decode().strip("=")
         
-        with st.spinner("> جاري تشغيل محركات التحليل الذاتي والعالمي..."):
+        marjan_alerts = aggressive_marjan_logic(target_url)
+        global_danger_count = 0
+        
+        with st.spinner("> جاري دمج تقنيات التحليل الذاتي والعالمي..."):
             st.markdown("---")
             
-            # عرض نتائج مرجان الاستباقية
-            if marjan_alerts:
-                st.subheader("🕵️ نتائج محرك مرجان للتحليل الذاتي العميق:")
-                for alert in marjan_alerts:
-                    st.markdown(f'<div class="heuristic-danger">{alert}</div>', unsafe_allow_html=True)
-            else:
-                st.info("ℹ️ محرك مرجان الذاتي: لم يتم رصد تهديدات هيكلية أو لغوية مباشرة في بنية الرابط.")
-
-            # عرض النتائج العالمية
+            # جلب البيانات العالمية أولاً لدمجها
             try:
                 response = requests.get(f"https://www.virustotal.com/api/v3/urls/{url_id}", headers=headers, timeout=12)
                 if response.status_code == 200:
-                    data = response.json()
-                    stats = data['data']['attributes'].get('last_analysis_stats', {})
-                    malicious = stats.get('malicious', 0)
-                    suspicious = stats.get('suspicious', 0)
-                    
-                    if malicious > 0 or suspicious > 0:
-                        st.error(f"🚨 الاستخبارات العالمية: تم تصنيف الرابط كخطر (Malicious: {malicious} | Suspicious: {suspicious}).")
-                    else:
-                        st.success("✅ الاستخبارات العالمية: الرابط لم يتم تسجيله كخطر في قواعد البيانات الحالية.")
-                    
-                    # رابط المراجعة العميقة الدائم
-                    st.info(f"🔗 [لمراجعة السلوك التقني العميق ونتائج المختبرات اضغط هنا](https://www.virustotal.com/gui/url/{url_id}/behavior)")
-                else:
-                    st.warning("⚠️ قواعد البيانات العالمية: الخدمة مشغولة، تم الاعتماد كلياً على قوة التحليل الذاتي لمرجان.")
-                    st.info(f"🔗 [يمكنك محاولة فتح تقرير السلوك يدوياً من هنا](https://www.virustotal.com/gui/url/{url_id}/behavior)")
+                    stats = response.json()['data']['attributes'].get('last_analysis_stats', {})
+                    global_danger_count = stats.get('malicious', 0) + stats.get('suspicious', 0)
+                
+                # إذا وجد الخطر عالمياً، نضيفه لقائمة "محرك مرجان" بلغة بسيطة
+                if global_danger_count > 0:
+                    marjan_alerts.append(f"📡 تأكيد استخباراتي: تم رصد الرابط كخطر بواسطة {global_danger_count} مختبر أمن سيبراني عالمي.")
             except:
-                st.warning("⚠️ خطأ في الاتصال العالمي: النظام يعمل الآن بذكاء مرجان المنفصل (Standalone Mode).")
+                pass
 
-st.markdown(f'<div class="footer">Eng. Zaid Al-Janabi | Marjan Trace v5.9 | Deep Forensic AI</div>', unsafe_allow_html=True)
+            # عرض نتائج محرك مرجان (التي تشمل الآن التحذير العالمي إذا وُجد)
+            if marjan_alerts:
+                st.subheader("🕵️ نتائج محرك مرجان للتحليل العميق:")
+                for alert in marjan_alerts:
+                    st.markdown(f'<div class="heuristic-danger">{alert}</div>', unsafe_allow_html=True)
+            else:
+                st.info("ℹ️ محرك مرجان: لم يتم رصد تهديدات مباشرة في بنية الرابط.")
+
+            # القسم السفلي للمراجعة اليدوية
+            if global_danger_count > 0:
+                 st.error(f"🚨 تنبيه: الرابط مصنف كتهديد نشط في قواعد البيانات العالمية.")
+            else:
+                 st.success("✅ الفحص العالمي: لا توجد سجلات خطر حالية لهذا الرابط.")
+            
+            st.info(f"🔗 [لمراجعة السلوك التقني العميق ونوع التهديد اضغط هنا](https://www.virustotal.com/gui/url/{url_id}/behavior)")
+
+st.markdown(f'<div class="footer">Eng. Zaid Al-Janabi | Marjan Trace v6.0 | Unified Intelligence</div>', unsafe_allow_html=True)
