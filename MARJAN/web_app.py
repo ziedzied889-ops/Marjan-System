@@ -8,42 +8,64 @@ from urllib.parse import urlparse
 # --- إعدادات الصفحة ---
 st.set_page_config(page_title="Marjan Trace", page_icon="🛡️", layout="centered")
 
-# --- التنسيق البصري الاحترافي مع الخلفية الرقمية ---
+# --- التنسيق البصري القوي (الخلفية الرقمية المفروضة) ---
 st.markdown("""
     <style>
-    /* إضافة خلفية رقمية متحركة أو ثابتة ذات طابع سيبراني */
-    .stApp {
-        background-image: linear-gradient(rgba(5, 7, 10, 0.8), rgba(5, 7, 10, 0.8)), 
-        url("https://www.transparenttextures.com/patterns/carbon-fibre.png"); /* نمط ألياف الكربون لإعطاء ملمس تقني */
-        background-color: #05070a;
-        background-attachment: fixed;
-    }
-    
-    .main { 
-        background: transparent; 
+    /* فرض الخلفية الرقمية على كل طبقات التطبيق */
+    [data-testid="stAppViewContainer"] {
+        background-color: #05070a !important;
+        background-image: 
+            linear-gradient(rgba(212, 175, 55, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(212, 175, 55, 0.03) 1px, transparent 1px),
+            radial-gradient(circle at center, #11141a 0%, #05070a 100%) !important;
+        background-size: 30px 30px, 30px 30px, 100% 100% !important;
+        background-attachment: fixed !important;
     }
 
-    h1 { color: #D4AF37 !important; text-align: center; text-shadow: 2px 2px 5px #000; font-family: 'Courier New', Courier, monospace; }
-    h3 { color: #D4AF37 !important; text-align: center; font-weight: normal; }
+    /* إزالة أي خلفيات بيضاء أو رمادية من الحاويات */
+    [data-testid="stHeader"], [data-testid="stToolbar"] {
+        background: transparent !important;
+    }
+
+    .main { 
+        background: transparent !important; 
+    }
+
+    /* العناوين والتوهج الذهبي */
+    h1 { 
+        color: #D4AF37 !important; 
+        text-align: center; 
+        text-shadow: 0px 0px 15px rgba(212, 175, 55, 0.6) !important; 
+        font-family: 'Courier New', Courier, monospace; 
+        margin-top: -50px;
+    }
+    h3 { 
+        color: #D4AF37 !important; 
+        text-align: center; 
+        font-weight: normal; 
+        opacity: 0.8;
+    }
     
+    /* تصميم الأزرار الاحترافي */
     .stButton>button { 
         width: 100%; 
         background-color: #D4AF37 !important; 
         color: black !important; 
         font-weight: bold; 
-        border-radius: 15px; 
+        border-radius: 10px; 
         height: 3.5em; 
-        border: 1px solid #D4AF37; 
-        transition: 0.3s;
-        box-shadow: 0px 0px 15px rgba(212, 175, 55, 0.2);
+        border: none; 
+        transition: 0.4s;
+        box-shadow: 0px 4px 15px rgba(212, 175, 55, 0.3);
     }
     
     .stButton>button:hover { 
-        background-color: #B8962E !important; 
-        transform: scale(1.02); 
-        box-shadow: 0px 0px 25px rgba(212, 175, 55, 0.4);
+        background-color: #f1c40f !important; 
+        transform: translateY(-2px); 
+        box-shadow: 0px 8px 25px rgba(212, 175, 55, 0.5);
     }
 
+    /* التذييل أسفل الصفحة */
     .footer { 
         position: fixed; 
         left: 0; 
@@ -52,37 +74,40 @@ st.markdown("""
         text-align: center; 
         color: #D4AF37; 
         padding: 10px; 
-        background-color: rgba(10, 12, 16, 0.9); 
+        background-color: rgba(5, 7, 10, 0.95); 
         font-weight: bold; 
         border-top: 1px solid #D4AF37; 
+        z-index: 100;
     }
 
+    /* صناديق النتائج بتأثير زجاجي */
     .result-box { 
         padding: 20px; 
         border-radius: 15px; 
-        border: 1px solid #D4AF37; 
-        background-color: rgba(0, 0, 0, 0.8); 
+        border: 1px solid rgba(212, 175, 55, 0.3); 
+        background-color: rgba(0, 0, 0, 0.6); 
         text-align: right; 
         margin-bottom: 10px; 
-        backdrop-filter: blur(5px);
+        backdrop-filter: blur(10px);
     }
 
     .heuristic-warning { 
         padding: 15px; 
         border-radius: 10px; 
         border: 1px solid #ff4b4b; 
-        background-color: rgba(43, 11, 11, 0.8); 
+        background-color: rgba(43, 11, 11, 0.7); 
         color: #ff9999; 
         text-align: right; 
         margin-bottom: 15px; 
         font-size: 0.9em; 
     }
     
-    /* تحسين شكل حقول الإدخال */
+    /* حقل إدخال الرابط */
     .stTextInput>div>div>input {
         background-color: rgba(255, 255, 255, 0.05) !important;
         color: white !important;
-        border: 1px solid rgba(212, 175, 55, 0.3) !important;
+        border: 1px solid rgba(212, 175, 55, 0.5) !important;
+        text-align: center;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -93,25 +118,20 @@ def advanced_heuristic_analysis(url):
     parsed_url = urlparse(url)
     domain = parsed_url.netloc.lower()
     
-    # 1. كشف تمويه Punycode
     if "xn--" in domain:
         alerts.append("❗ تم رصد تشفير Punycode: محاولة لإخفاء الهوية الحقيقية للنطاق عبر محارف دولية.")
     
-    # 2. كشف الكلمات المفتاحية لهجمات التصيد
     phishing_triggers = ['login', 'verify', 'account', 'secure', 'update', 'banking', 'support', 'office365']
     if any(trigger in url.lower() for trigger in phishing_triggers):
         alerts.append("❗ كلمات مريبة: الرابط يحتوي على مصطلحات تُستخدم عادةً لاستدراج الضحايا.")
     
-    # 3. كشف استغلال الخدمات المجانية
     free_hosting = ['canva.site', 'wixsite.com', 'web.app', 'firebaseapp.com', 'github.io']
     if any(service in domain for service in free_hosting):
         alerts.append(f"⚠️ نطاق فرعي مريب: يتم استضافة الصفحة على خدمة مجانية ({domain})، غالباً ما تُستغل للتصيد.")
 
-    # 4. فحص أمن البروتوكول
     if url.startswith("http://"):
         alerts.append("🚫 بروتوكول غير آمن: الرابط لا يستخدم التشفير (HTTP)، مما يسهل اعتراض البيانات.")
         
-    # 5. كشف الطول المفرط (Obfuscation)
     if len(url) > 100:
         alerts.append("❗ تعمية الرابط: طول الرابط مبالغ فيه، وهي تقنية لإخفاء النطاق الحقيقي عن عين المستخدم.")
 
@@ -129,7 +149,6 @@ if st.button("تشغيل الفحص الرقمي"):
     else:
         heuristic_results = advanced_heuristic_analysis(target_url)
         
-        # ملاحظة: تأكد من حماية مفتاح الـ API الخاص بك عند النشر الفعلي
         API_KEY = "22e03b88a0526e3d43b85556438c2d5895ccb0ef97771cff2471edab14cac85b"
         headers = {"x-apikey": API_KEY}
         url_id = base64.urlsafe_b64encode(target_url.encode()).decode().strip("=")
