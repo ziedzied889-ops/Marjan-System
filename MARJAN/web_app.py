@@ -27,8 +27,8 @@ st.markdown("""
     .stButton>button { width: 100%; background-color: #D4AF37 !important; color: black !important; font-weight: bold; border-radius: 12px; height: 3.8em; }
     .heuristic-danger { padding: 15px; border-radius: 10px; border-right: 6px solid #ff4b4b; background-color: rgba(255, 75, 75, 0.25); color: #ff9999; text-align: right; margin-bottom: 10px; font-weight: bold; border-left: 1px solid rgba(255,75,75,0.4); }
     .threat-intel { padding: 15px; border-radius: 10px; background-color: rgba(212, 175, 55, 0.1); border: 1px solid #D4AF37; color: #eee; text-align: right; margin-top: 15px; }
-    .latest-threats { padding: 15px; border-radius: 10px; background: rgba(255, 75, 75, 0.05); border: 1px solid rgba(255, 75, 75, 0.3); margin-top: 20px; }
-    .footer { position: fixed; left: 0; bottom: 0; width: 100%; text-align: center; color: #D4AF37; padding: 10px; background-color: rgba(5, 7, 10, 0.98); border-top: 1px solid #D4AF37; }
+    .latest-threats { padding: 15px; border-radius: 10px; background: rgba(255, 75, 75, 0.05); border: 1px solid rgba(255, 75, 75, 0.3); margin-top: 30px; margin-bottom: 50px; }
+    .footer { position: fixed; left: 0; bottom: 0; width: 100%; text-align: center; color: #D4AF37; padding: 10px; background-color: rgba(5, 7, 10, 0.98); border-top: 1px solid #D4AF37; z-index: 100; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -55,12 +55,13 @@ def aggressive_marjan_logic(url):
 
     return list(set(reasons))
 
-# --- الواجهة الرئيسية (ثبات كامل) ---
+# --- الواجهة الرئيسية ---
 st.markdown("<h1>🛡️ Marjan Trace</h1>", unsafe_allow_html=True)
 st.markdown("<h3 style='text-align:center; color:#D4AF37;'>نظام التحليل الجنائي الرقمي</h3>", unsafe_allow_html=True)
 
 target_url = st.text_input("", placeholder="أدخل الرابط المشبوه للتحليل...")
 
+# تنفيذ الفحص عند الضغط على الزر
 if st.button("تفعيل بروتوكول الكشف الذكي"):
     if target_url:
         API_KEY = "22e03b88a0526e3d43b85556438c2d5895ccb0ef97771cff2471edab14cac85b"
@@ -84,37 +85,11 @@ if st.button("تفعيل بروتوكول الكشف الذكي"):
             except:
                 pass
 
-            # --- خانة أحدث الروابط الخبيثة ووظيفتها (بدلاً من الرادار) ---
-            st.markdown("""
-                <div class="latest-threats">
-                    <h4 style="color:#ff4b4b; margin-bottom:10px; border-bottom:1px solid rgba(255,75,75,0.2);">🔴 قاعدة بيانات التهديدات الحديثة (Live)</h4>
-                    <table style="width:100%; color:#eee; font-size:0.85em; text-align:right;">
-                        <tr style="color:#D4AF37;">
-                            <th>الرابط المشبوه</th>
-                            <th>نوع التهديد</th>
-                        </tr>
-                        <tr>
-                            <td>bit.ly/secure-login-v1</td>
-                            <td>تصيد حسابات (Phishing)</td>
-                        </tr>
-                        <tr>
-                            <td>update-system-win11.top</td>
-                            <td>برمجيات فدية (Ransomware)</td>
-                        </tr>
-                        <tr>
-                            <td>gift-card-free.xyz</td>
-                            <td>سرقة بيانات بنكية (Fraud)</td>
-                        </tr>
-                    </table>
-                </div>
-            """, unsafe_allow_html=True)
-
             if marjan_alerts:
                 st.subheader("🕵️ نتائج التحليل العميق:")
                 for alert in marjan_alerts:
                     st.markdown(f'<div class="heuristic-danger">{alert}</div>', unsafe_allow_html=True)
                 
-                # قسم التوعية مع التوصية
                 st.markdown(f"""
                 <div class="threat-intel">
                     <h4 style="color:#D4AF37; margin-bottom:10px;">⚠️ ماذا سيحدث لو ضغطت على هذا الرابط؟</h4>
@@ -133,5 +108,30 @@ if st.button("تفعيل بروتوكول الكشف الذكي"):
                 st.success("✅ محرك مرجان: لم يتم رصد تهديدات هيكلية واضحة، لكن يرجى الحذر دائماً.")
 
             st.info(f"🔗 [لمراجعة السلوك التقني التفصيلي اضغط هنا](https://www.virustotal.com/gui/url/{url_id}/behavior)")
+
+# --- قاعدة بيانات التهديدات الحديثة (خارج شرط الزر لتظهر دائماً وفي الأسفل) ---
+st.markdown("""
+    <div class="latest-threats">
+        <h4 style="color:#ff4b4b; margin-bottom:10px; border-bottom:1px solid rgba(255,75,75,0.2);">🔴 قاعدة بيانات التهديدات الحديثة (Live)</h4>
+        <table style="width:100%; color:#eee; font-size:0.85em; text-align:right;">
+            <tr style="color:#D4AF37;">
+                <th>الرابط المشبوه</th>
+                <th>نوع التهديد</th>
+            </tr>
+            <tr>
+                <td>bit.ly/secure-login-v1</td>
+                <td>تصيد حسابات (Phishing)</td>
+            </tr>
+            <tr>
+                <td>update-system-win11.top</td>
+                <td>برمجيات فدية (Ransomware)</td>
+            </tr>
+            <tr>
+                <td>gift-card-free.xyz</td>
+                <td>سرقة بيانات بنكية (Fraud)</td>
+            </tr>
+        </table>
+    </div>
+""", unsafe_allow_html=True)
 
 st.markdown(f'<div class="footer">Eng. Zaid Al-Janabi | Marjan Trace v6.3 | Advanced Forensic Detection</div>', unsafe_allow_html=True)
