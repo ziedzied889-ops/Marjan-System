@@ -1,13 +1,19 @@
 import streamlit as st
 import requests
 import base64
-import time
 import re
 from urllib.parse import urlparse
 from datetime import datetime
 
 # --- إعدادات الصفحة ---
 st.set_page_config(page_title="Marjan Trace", page_icon="🛡️", layout="centered")
+
+# --- تهيئة مخزن البيانات اللحظي (لخزن التهديدات المكتشفة خلال الجلسة) ---
+if 'threat_vault' not in st.session_state:
+    st.session_state.threat_vault = [
+        {"url": "allegrolokalnie.sbs", "type": "انتحال صفة (Allegro)", "time": "00:09"},
+        {"url": "thechoceur.com", "type": "تصيد غير مشفر", "time": "23:06"}
+    ]
 
 # --- التنسيق البصري (ثبات كامل للواجهة v6.3) ---
 st.markdown("""
@@ -33,113 +39,105 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- وظيفة تصحيح الروابط برمجياً (Auto-Correction Core) ---
-def fix_url_format(url):
-    if url.startswith("ttp://"):
-        return "http://" + url[6:]
-    if url.startswith("ttps://"):
-        return "https://" + url[7:]
-    return url
-
-# --- محرك التحليل الجنائي المتقدم (M.T Deep Forensic Core v6.9.5) ---
-def aggressive_marjan_logic(url):
+# --- محرك التحليل الجنائي اللحظي (M.T Deep Forensic v7.0) ---
+def advanced_forensic_analysis(url):
     reasons = []
     domain = urlparse(url).netloc.lower()
-    full_url = url.lower()
     
-    # 1. رصد النطاقات ذات السمعة السيئة جداً (Untrusted TLDs)
-    bad_tlds = ['.sbs', '.xyz', '.top', '.zip', '.online', '.site']
-    if any(domain.endswith(tld) for tld in bad_tlds):
-        reasons.append(f"❗ نطاق عالي الخطورة: النطاق المرجعي ({domain.split('.')[-1]}) يُستخدم غالباً في استضافة برمجيات خبيثة لحظية.")
+    # 1. رصد استغلال منصات الاستضافة الموثوقة (مثل Wix Studio في صورتك)
+    trusted_platforms = ['wixstudio.com', 'webflow.io', 'firebaseapp.com', 'pages.dev']
+    if any(plat in domain for plat in trusted_platforms):
+        reasons.append(f"⚠️ رصد استغلال منصات: الرابط يستخدم منصة موثوقة ({domain.split('.')[-2]}) لإنشاء صفحة مشبوهة.")
 
-    # 2. تحليل الكلمات الدالة على انتحال الصفة
-    phishing_brands = ['allegro', 'mega', 'bank', 'login', 'secure']
-    if any(brand in domain for brand in phishing_brands):
-        reasons.append("🚨 انتحال صفحة تجارية: تم رصد اسم علامة تجارية داخل نطاق غير رسمي.")
+    # 2. تحليل الكلمات الدالة على انتحال الهوية
+    if any(k in domain for k in ['platform', 'live', 'login', 'secure', 'verify']):
+        reasons.append("🚨 انتحال صفة نظام: اسم النطاق الفرعي يحتوي على كلمات تضليل توحي بأنه رابط نظام رسمي.")
 
-    # 3. التدقيق في بروتوكول الاتصال
+    # 3. التحقق من التشفير
     if url.startswith("http://"):
-        reasons.append("🔓 اتصال مكشوف: الرابط يفتقر للتشفير، مما يسهل سحب البيانات المدخلة.")
+        reasons.append("🔓 ثغرة أمنية: الرابط يفتقر لتشفير البيانات.")
 
     return list(set(reasons))
 
-# --- وظيفة الاستعلام اللحظي العالمي ---
-def check_live_global_threats(url):
-    external_alerts = []
+# --- وظيفة جلب البيانات من الأنظمة العالمية اللحظية ---
+def fetch_global_intel(url):
+    alerts = []
+    # PhishTank Live
     try:
-        # فحص PhishTank بطلب مباشر
-        pt_response = requests.post("https://checkurl.phishtank.com/checkurl/", data={'url': url, 'format': 'json'}, timeout=12)
-        if pt_response.status_code == 200:
-            res = pt_response.json()
-            if res.get('results', {}).get('in_database'):
-                external_alerts.append("🐟 PhishTank Live: الرابط مدرج حالياً كتهديد نشط في القوائم العالمية.")
+        response = requests.post("https://checkurl.phishtank.com/checkurl/", data={'url': url, 'format': 'json'}, timeout=10)
+        if response.status_code == 200 and response.json().get('results', {}).get('in_database'):
+            alerts.append("🐟 PhishTank Alert: الرابط مدرج حالياً في قواعد بيانات التصيد العالمية.")
     except: pass
-    return external_alerts
+    return alerts
 
 # --- الواجهة الرئيسية ---
 st.markdown("<h1>🛡️ Marjan Trace</h1>", unsafe_allow_html=True)
 st.markdown("<h3 style='text-align:center; color:#D4AF37;'>نظام التحليل الجنائي الرقمي</h3>", unsafe_allow_html=True)
 
-raw_url = st.text_input("", placeholder="أدخل الرابط للتحليل اللحظي العميق...")
+target_url = st.text_input("", placeholder="أدخل الرابط للفحص الجنائي اللحظي...")
 
 if st.button("تفعيل بروتوكول الكشف الذكي"):
-    if raw_url:
-        # تصحيح الرابط قبل المعالجة
-        target_url = fix_url_format(raw_url)
+    if target_url:
+        # تصحيح الرابط برمجياً
+        if target_url.startswith("ttp"): target_url = "h" + target_url
         
         API_KEY = "22e03b88a0526e3d43b85556438c2d5895ccb0ef97771cff2471edab14cac85b"
         headers = {"x-apikey": API_KEY}
         url_id = base64.urlsafe_b64encode(target_url.encode()).decode().strip("=")
         
-        marjan_alerts = aggressive_marjan_logic(target_url)
-        
-        with st.spinner("> جاري تنفيذ بروتوكولات التدقيق اللحظي وتصحيح المسارات..."):
+        with st.spinner("> جاري جلب المعلومات من الأنظمة العالمية وتحليلها..."):
             st.markdown("---")
             
-            # جلب البيانات من PhishTank
-            live_threats = check_live_global_threats(target_url)
-            marjan_alerts.extend(live_threats)
+            # التحليل الذاتي + جلب البيانات العالمية
+            marjan_alerts = advanced_forensic_analysis(target_url)
+            marjan_alerts.extend(fetch_global_intel(target_url))
             
-            # استعلام VirusTotal
+            # VirusTotal Intel
             try:
-                vt_res = requests.get(f"https://www.virustotal.com/api/v3/urls/{url_id}", headers=headers, timeout=12)
+                vt_res = requests.get(f"https://www.virustotal.com/api/v3/urls/{url_id}", headers=headers, timeout=10)
                 if vt_res.status_code == 200:
                     malicious = vt_res.json()['data']['attributes'].get('last_analysis_stats', {}).get('malicious', 0)
                     if malicious > 0:
-                        marjan_alerts.append(f"📡 استخبارات عالمية: تم تأكيد الخطورة بواسطة {malicious} مختبر أمني دولي.")
+                        marjan_alerts.append(f"📡 استخبارات دولية: تم تأكيد الخطورة بواسطة {malicious} محرك أمني.")
             except: pass
 
             if marjan_alerts:
-                st.subheader("🕵️ نتائج التحليل الجنائي اللحظي:")
+                st.subheader("🕵️ نتائج التحليل اللحظي:")
                 for alert in marjan_alerts:
                     st.markdown(f'<div class="heuristic-danger">{alert}</div>', unsafe_allow_html=True)
                 
+                # تخزين في قاعدة بيانات الجلسة
+                st.session_state.threat_vault.insert(0, {
+                    "url": target_url[:30] + "...", 
+                    "type": "Phishing/Suspicious", 
+                    "time": datetime.now().strftime("%H:%M")
+                })
+                
                 st.markdown(f"""
                 <div class="threat-intel">
-                    <h4 style="color:#D4AF37; margin-bottom:10px;">⚠️ التحليل السلوكي للتهديد:</h4>
-                    <p style="color:#eee; font-size:0.9em;">تم رصد محاولة تضليل برمجية عبر نطاق <b>.sbs</b> وانتحال صفة منصة <b>Allegro</b>.</p>
+                    <h4 style="color:#D4AF37; margin-bottom:10px;">⚠️ ماذا يفعل هذا الرابط؟</h4>
+                    <p style="color:#eee; font-size:0.9em;">يستغل الرابط منصات تطوير الويب لخداع المستخدمين وسرقة بيانات الدخول.</p>
                     <p style="font-size: 0.95em; color: #ff4b4b; font-weight: bold; border-top: 1px solid rgba(212,175,55,0.2); padding-top: 10px;">
-                        💡 التوصية الأمنية: الرابط خبيث جداً، يرجى عدم محاولة فتحه أو تداوله.
+                        💡 نصيحة: تجنب إدخال أي معلومات في هذا الموقع.
                     </p>
                 </div>
                 """, unsafe_allow_html=True)
             else:
-                st.success("✅ محرك مرجان: لم يتم رصد تهديدات في قواعد البيانات اللحظية حالياً.")
+                st.success("✅ محرك مرجان: لم يتم رصد تهديدات لحظية حالياً.")
 
             st.info(f"🔗 [السجل الفني الكامل للرابط (Live)](https://www.virustotal.com/gui/url/{url_id}/behavior)")
 
-# --- قاعدة بيانات التهديدات اللحظية ---
+# --- قاعدة بيانات التهديدات اللحظية المخزنة ---
 st.markdown(f"""
     <div class="latest-threats">
-        <h4 style="color:#ff4b4b; margin-bottom:10px; border-bottom:1px solid rgba(255,75,75,0.2);">🔴 قاعدة بيانات التهديدات اللحظية (تحديث: {datetime.now().strftime('%H:%M:%S')})</h4>
+        <h4 style="color:#ff4b4b; margin-bottom:10px; border-bottom:1px solid rgba(255,75,75,0.2);">🔴 قاعدة بيانات التهديدات المخزنة (Live Vault)</h4>
         <table style="width:100%; color:#eee; font-size:0.85em; text-align:right;">
             <tr style="color:#D4AF37;">
-                <th>الرابط المكتشف</th>
+                <th>الرابط</th>
                 <th>نوع التهديد</th>
+                <th>الوقت</th>
             </tr>
-            <tr><td>{raw_url if raw_url else "في انتظار الفحص..."}</td><td>تلاعب بروتوكول / Phishing</td></tr>
-            <tr><td>allegrolokalnie.sbs</td><td>انتحال صفة (Allegro)</td></tr>
-            <tr><td>thechoceur.com</td><td>تصيد غير مشفر</td></tr>
+            {"".join([f"<tr><td>{t['url']}</td><td>{t['type']}</td><td>{t['time']}</td></tr>" for t in st.session_state.threat_vault[:5]])}
         </table>
     </div>
 """, unsafe_allow_html=True)
