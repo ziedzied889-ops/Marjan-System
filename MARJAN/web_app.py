@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 # --- إعدادات الصفحة ---
 st.set_page_config(page_title="Marjan Trace", page_icon="🛡️", layout="centered")
 
-# --- التنسيق البصري ---
+# --- التنسيق البصري (ثبات كامل للواجهة) ---
 st.markdown("""
     <style>
     [data-testid="stAppViewContainer"] {
@@ -31,35 +31,33 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- محرك التحليل الجنائي المتقدم (M.T Deep Forensic Core v6.1) ---
+# --- محرك التحليل الجنائي المتقدم (M.T Deep Forensic Core v6.2) ---
 def aggressive_marjan_logic(url):
     reasons = []
     domain = urlparse(url).netloc.lower()
     full_url = url.lower()
     path = urlparse(url).path.lower()
     
-    social_threats = ['merit', 'king', 'bet', 'win', 'prize', 'bonus', 'claim', 'verify', 'update', 'vave', 'login', 'crypto', 'divida', 'debt', 'zero', 'loan', 'gift']
+    # 1. الذكاء اللغوي والمالي الموسع (إضافة كلمات من الرابط الجديد)
+    social_threats = ['app', 'cliente', 'merit', 'king', 'bet', 'win', 'prize', 'bonus', 'claim', 'verify', 'update', 'vave', 'login', 'crypto', 'divida', 'debt', 'zero', 'loan', 'gift']
     if any(word in full_url for word in social_threats):
-        reasons.append("🚨 هندسة اجتماعية: رصد أنماط استدراج مالي/أمني في بنية الرابط.")
+        reasons.append("🚨 هندسة اجتماعية: تم رصد استخدام كلمات استدراج لتمويه المستخدم (مثل App/Cliente).")
 
-    if any(trigger in path for trigger in ['vote', 'event', 'active', 'check', 'pague']):
-         reasons.append("🚨 نمط تفاعل مشبوه: الرابط يطلب إجراءً فورياً لتنفيذ هجوم تصيد.")
-
-    entities = ['bybit', 'binance', 'metamask', 'trust', 'paypal', 'netflix', 'apple', 'instagram', 'facebook', 'whatsapp', 'telegram']
-    for e in entities:
-        if e in domain and domain != f"{e}.com":
-            reasons.append(f"⚠️ انتحال كيان: محاولة تمويه النطاق ليبدو كأنه تابع لشركة {e.capitalize()}.")
-
+    # 2. تحليل التفاعل وبروتوكول النقل
     if url.startswith("http://"):
-        reasons.append("🔓 ثغرة بروتوكول: الرابط يفتقر لتشفير SSL (غير آمن).")
-    
-    dangerous_tlds = ['.mobi', '.br', '.xyz', '.top', '.zip', '.info']
-    if any(domain.endswith(tld) for tld in dangerous_tlds):
-        reasons.append(f"❗ تصنيف النطاق: استخدام TLD يشتهر باستضافة حملات الاحتيال.")
+        reasons.append("🔓 ثغرة بروتوكول: الرابط يستخدم HTTP غير مشفر، مما يجعله خطراً جداً لتداول البيانات.")
+        
+    if any(trigger in path for trigger in ['vote', 'event', 'active', 'check', 'pague', 'auth']):
+         reasons.append("🚨 نمط تفاعل مشبوه: الرابط يطلب إجراءً فورياً لتنفيذ هجمات التصيد.")
+
+    # 3. تحليل النطاقات المشبوهة (TLDs)
+    dangerous_tlds = ['.org', '.mobi', '.br', '.xyz', '.top', '.zip', '.info']
+    if any(domain.endswith(tld) for tld in dangerous_tlds) and url.startswith("http://"):
+        reasons.append(f"❗ تصنيف عالي الخطورة: الجمع بين نطاق {domain.split('.')[-1]} وبروتوكول غير مشفر يشير بقوة لنشاط تخريبي.")
 
     return list(set(reasons))
 
-# --- الواجهة الرئيسية ---
+# --- الواجهة الرئيسية (ثابتة تماماً) ---
 st.markdown("<h1>🛡️ Marjan Trace</h1>", unsafe_allow_html=True)
 st.markdown("<h3 style='text-align:center; color:#D4AF37;'>نظام التحليل الجنائي الرقمي</h3>", unsafe_allow_html=True)
 
@@ -74,7 +72,7 @@ if st.button("تفعيل بروتوكول الكشف الذكي"):
         marjan_alerts = aggressive_marjan_logic(target_url)
         global_danger_count = 0
         
-        with st.spinner("> جاري تنفيذ الفحص الشامل..."):
+        with st.spinner("> جاري تنفيذ بروتوكولات التدقيق الجنائي..."):
             st.markdown("---")
             
             try:
@@ -84,7 +82,7 @@ if st.button("تفعيل بروتوكول الكشف الذكي"):
                     global_danger_count = stats.get('malicious', 0) + stats.get('suspicious', 0)
                 
                 if global_danger_count > 0:
-                    marjan_alerts.append(f"📡 تأكيد استخباراتي: تم رصد الرابط كخطر بواسطة {global_danger_count} مختبر أمن سيبراني عالمي.")
+                    marjan_alerts.append(f"📡 تأكيد استخباراتي: تم تصنيف الرابط كخطر بواسطة {global_danger_count} مختبر أمن سيبراني عالمي.")
             except:
                 pass
 
@@ -93,7 +91,7 @@ if st.button("تفعيل بروتوكول الكشف الذكي"):
                 for alert in marjan_alerts:
                     st.markdown(f'<div class="heuristic-danger">{alert}</div>', unsafe_allow_html=True)
                 
-                # --- القسم الجديد: نبذة عن مخاطر الروابط (يظهر فقط عند وجود خطر) ---
+                # قسم التوعية (ثابت كما طلبته)
                 st.markdown(f"""
                 <div class="threat-intel">
                     <h4 style="color:#D4AF37; margin-bottom:10px;">⚠️ ماذا سيحدث لو ضغطت على هذا الرابط؟</h4>
@@ -103,12 +101,11 @@ if st.button("تفعيل بروتوكول الكشف الذكي"):
                         <li>💸 <b>الاحتيال المالي:</b> استدراجك لعمليات دفع وهمية أو استغلال رصيدك البنكي.</li>
                         <li>📱 <b>اختراق الحسابات:</b> السيطرة على حسابات التواصل الاجتماعي عبر سحب (Session Cookies).</li>
                     </ul>
-                    <p style="font-size: 0.9em; color: #ff9999;">توصية: يرجى إغلاق الصفحة فوراً وعدم إدخال أي بيانات شخصية.</p>
                 </div>
                 """, unsafe_allow_html=True)
             else:
-                st.success("✅ محرك مرجان: الرابط يبدو آمناً هيكلياً وعالمياً.")
+                st.success("✅ محرك مرجان: لم يتم رصد تهديدات هيكلية واضحة، لكن يرجى الحذر دائماً.")
 
             st.info(f"🔗 [لمراجعة السلوك التقني التفصيلي اضغط هنا](https://www.virustotal.com/gui/url/{url_id}/behavior)")
 
-st.markdown(f'<div class="footer">Eng. Zaid Al-Janabi | Marjan Trace v6.1 | Cyber Awareness</div>', unsafe_allow_html=True)
+st.markdown(f'<div class="footer">Eng. Zaid Al-Janabi | Marjan Trace v6.2 | Advanced Forensic Detection</div>', unsafe_allow_html=True)
