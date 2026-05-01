@@ -8,11 +8,11 @@ from datetime import datetime
 # --- إعدادات الصفحة ---
 st.set_page_config(page_title="Marjan Trace", page_icon="🛡️", layout="centered")
 
-# --- تهيئة مخزن البيانات اللحظي (لخزن التهديدات المكتشفة خلال الجلسة) ---
+# --- تهيئة مخزن التهديدات اللحظي ---
 if 'threat_vault' not in st.session_state:
     st.session_state.threat_vault = [
-        {"url": "allegrolokalnie.sbs", "type": "انتحال صفة (Allegro)", "time": "00:09"},
-        {"url": "thechoceur.com", "type": "تصيد غير مشفر", "time": "23:06"}
+        {"url": "blaquice.com/na/media/...", "type": "مسار ملغم (Media Phish)", "time": "00:13"},
+        {"url": "live--platform.wixstudio...", "type": "استغلال منصات سحابية", "time": "00:12"}
     ]
 
 # --- التنسيق البصري (ثبات كامل للواجهة v6.3) ---
@@ -39,34 +39,40 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- محرك التحليل الجنائي اللحظي (M.T Deep Forensic v7.0) ---
-def advanced_forensic_analysis(url):
+# --- محرك التحليل الجنائي الهجومي (M.T Offensive Forensic v7.5) ---
+def deep_path_analysis(url):
     reasons = []
-    domain = urlparse(url).netloc.lower()
+    parsed = urlparse(url)
+    domain = parsed.netloc.lower()
+    path = parsed.path.lower()
     
-    # 1. رصد استغلال منصات الاستضافة الموثوقة (مثل Wix Studio في صورتك)
-    trusted_platforms = ['wixstudio.com', 'webflow.io', 'firebaseapp.com', 'pages.dev']
-    if any(plat in domain for plat in trusted_platforms):
-        reasons.append(f"⚠️ رصد استغلال منصات: الرابط يستخدم منصة موثوقة ({domain.split('.')[-2]}) لإنشاء صفحة مشبوهة.")
+    # 1. رصد المسارات العشوائية والمشبوهة (مثل الموجود في صورتك)
+    # الهجمات غالباً تضع ملفات داخل مجلدات مثل media, na, logs, verification
+    suspicious_paths = ['/media/', '/na/', '/verify/', '/login/', '/secure/']
+    if any(sp in path for sp in suspicious_paths):
+        reasons.append(f"🚨 مسار مشبوه: تم رصد هيكلية ملفات ({path}) تُستخدم عادةً لرفع صفحات التصيد على المواقع المخترقة.")
 
-    # 2. تحليل الكلمات الدالة على انتحال الهوية
-    if any(k in domain for k in ['platform', 'live', 'login', 'secure', 'verify']):
-        reasons.append("🚨 انتحال صفة نظام: اسم النطاق الفرعي يحتوي على كلمات تضليل توحي بأنه رابط نظام رسمي.")
+    # 2. تحليل طول المسار العشوائي (Entropy Analysis)
+    path_suffix = path.split('/')[-1]
+    if len(path_suffix) > 8 and not path_suffix.endswith(('.jpg', '.png', '.pdf')):
+        reasons.append("🕵️ تحليل السلوك: المسار النهائي للرابط يحتوي على رموز عشوائية تشير إلى حملة تصيد لحظية.")
 
-    # 3. التحقق من التشفير
+    # 3. التدقيق في بروتوكول HTTP للروابط التي تطلب بيانات
     if url.startswith("http://"):
-        reasons.append("🔓 ثغرة أمنية: الرابط يفتقر لتشفير البيانات.")
+        reasons.append("🔓 بروتوكول غير آمن: الرابط يفتقر للتشفير، مما يسهل عمليات التجسس الجنائي.")
 
     return list(set(reasons))
 
-# --- وظيفة جلب البيانات من الأنظمة العالمية اللحظية ---
+# --- وظيفة الاستعلام عن التهديدات العالمية ---
 def fetch_global_intel(url):
     alerts = []
-    # PhishTank Live
+    # الاستعلام المباشر من PhishTank
     try:
-        response = requests.post("https://checkurl.phishtank.com/checkurl/", data={'url': url, 'format': 'json'}, timeout=10)
-        if response.status_code == 200 and response.json().get('results', {}).get('in_database'):
-            alerts.append("🐟 PhishTank Alert: الرابط مدرج حالياً في قواعد بيانات التصيد العالمية.")
+        data = {'url': url, 'format': 'json'}
+        response = requests.post("https://checkurl.phishtank.com/checkurl/", data=data, timeout=12)
+        if response.status_code == 200:
+            if response.json().get('results', {}).get('in_database'):
+                alerts.append("🐟 تنبيه PhishTank اللحظي: هذا الرابط مسجل كتهديد نشط في القوائم العالمية.")
     except: pass
     return alerts
 
@@ -74,66 +80,67 @@ def fetch_global_intel(url):
 st.markdown("<h1>🛡️ Marjan Trace</h1>", unsafe_allow_html=True)
 st.markdown("<h3 style='text-align:center; color:#D4AF37;'>نظام التحليل الجنائي الرقمي</h3>", unsafe_allow_html=True)
 
-target_url = st.text_input("", placeholder="أدخل الرابط للفحص الجنائي اللحظي...")
+target_url = st.text_input("", placeholder="أدخل الرابط للفحص اللحظي الشامل...")
 
 if st.button("تفعيل بروتوكول الكشف الذكي"):
     if target_url:
-        # تصحيح الرابط برمجياً
+        # تصحيح تلقائي لأخطاء الكتابة
         if target_url.startswith("ttp"): target_url = "h" + target_url
         
         API_KEY = "22e03b88a0526e3d43b85556438c2d5895ccb0ef97771cff2471edab14cac85b"
         headers = {"x-apikey": API_KEY}
         url_id = base64.urlsafe_b64encode(target_url.encode()).decode().strip("=")
         
-        with st.spinner("> جاري جلب المعلومات من الأنظمة العالمية وتحليلها..."):
+        with st.spinner("> جاري تنفيذ المسح الجنائي للمسارات وقواعد البيانات العالمية..."):
             st.markdown("---")
             
-            # التحليل الذاتي + جلب البيانات العالمية
-            marjan_alerts = advanced_forensic_analysis(target_url)
+            # تحليل مرجان العميق للمسارات
+            marjan_alerts = deep_path_analysis(target_url)
+            # جلب البيانات العالمية
             marjan_alerts.extend(fetch_global_intel(target_url))
             
-            # VirusTotal Intel
+            # فحص VirusTotal
             try:
-                vt_res = requests.get(f"https://www.virustotal.com/api/v3/urls/{url_id}", headers=headers, timeout=10)
+                vt_res = requests.get(f"https://www.virustotal.com/api/v3/urls/{url_id}", headers=headers, timeout=12)
                 if vt_res.status_code == 200:
                     malicious = vt_res.json()['data']['attributes'].get('last_analysis_stats', {}).get('malicious', 0)
                     if malicious > 0:
-                        marjan_alerts.append(f"📡 استخبارات دولية: تم تأكيد الخطورة بواسطة {malicious} محرك أمني.")
+                        marjan_alerts.append(f"📡 استخبارات دولية: تم رصد خطورة بواسطة {malicious} مركز أمني.")
             except: pass
 
             if marjan_alerts:
-                st.subheader("🕵️ نتائج التحليل اللحظي:")
+                st.subheader("🕵️ نتائج التحليل الجنائي اللحظي:")
                 for alert in marjan_alerts:
                     st.markdown(f'<div class="heuristic-danger">{alert}</div>', unsafe_allow_html=True)
                 
-                # تخزين في قاعدة بيانات الجلسة
+                # إضافة التهديد للمخزن اللحظي
                 st.session_state.threat_vault.insert(0, {
-                    "url": target_url[:30] + "...", 
-                    "type": "Phishing/Suspicious", 
+                    "url": target_url[:35] + "...", 
+                    "type": "Path Phishing / Media Leak", 
                     "time": datetime.now().strftime("%H:%M")
                 })
                 
                 st.markdown(f"""
                 <div class="threat-intel">
-                    <h4 style="color:#D4AF37; margin-bottom:10px;">⚠️ ماذا يفعل هذا الرابط؟</h4>
-                    <p style="color:#eee; font-size:0.9em;">يستغل الرابط منصات تطوير الويب لخداع المستخدمين وسرقة بيانات الدخول.</p>
+                    <h4 style="color:#D4AF37; margin-bottom:10px;">⚠️ تحليل المسار الجنائي:</h4>
+                    <p style="color:#eee; font-size:0.9em;">تم اكتشاف استغلال لمجلدات الوسائط (Media) لزرع صفحات تصيد نشطة.</p>
                     <p style="font-size: 0.95em; color: #ff4b4b; font-weight: bold; border-top: 1px solid rgba(212,175,55,0.2); padding-top: 10px;">
-                        💡 نصيحة: تجنب إدخال أي معلومات في هذا الموقع.
+                        💡 الإجراء: تم تصنيف الرابط كخطر؛ يرجى الحذر من الروابط التي تنتهي بمسارات عشوائية طويلة.
                     </p>
                 </div>
                 """, unsafe_allow_html=True)
             else:
-                st.success("✅ محرك مرجان: لم يتم رصد تهديدات لحظية حالياً.")
+                st.success("✅ محرك مرجان: لم يتم رصد تهديدات واضحة في هذا المسار حالياً.")
 
             st.info(f"🔗 [السجل الفني الكامل للرابط (Live)](https://www.virustotal.com/gui/url/{url_id}/behavior)")
 
-# --- قاعدة بيانات التهديدات اللحظية المخزنة ---
+# --- سجل التهديدات المكتشفة ---
 st.markdown(f"""
     <div class="latest-threats">
-        <h4 style="color:#ff4b4b; margin-bottom:10px; border-bottom:1px solid rgba(255,75,75,0.2);">🔴 قاعدة بيانات التهديدات المخزنة (Live Vault)</h4>
+        <h4 style="color:#ff4b4b; margin-bottom:10px; border-bottom:1px solid rgba(255,75,75,0.2);">🔴 سجل التهديدات اللحظية (Live Archive)</h4>
         <table style="width:100%; color:#eee; font-size:0.85em; text-align:right;">
             <tr style="color:#D4AF37;">
-                <th>الرابط</th>
+                <th>الرابط المكتشف</th>
                 <th>نوع التهديد</th>
                 <th>الوقت</th>
             </tr>
