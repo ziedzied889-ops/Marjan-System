@@ -32,41 +32,46 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- محرك التحليل الجنائي المتقدم (M.T Deep Forensic Core v6.7) ---
+# --- محرك التحليل الجنائي المتقدم (M.T Deep Forensic Core v6.8) ---
 def aggressive_marjan_logic(url):
     reasons = []
     domain = urlparse(url).netloc.lower()
     full_url = url.lower()
+    path = urlparse(url).path.lower()
     
-    # 1. رصد ملفات الاختبار الأمنية (EICAR & Test Patterns)
-    test_signatures = ['eicar', 'testfile', 'malware-test', 'signature-test']
-    if any(sig in full_url for sig in test_signatures):
-        reasons.append("🧪 ملف اختبار أمني: تم رصد توقيع مطابق لملفات اختبار الأنظمة الدفاعية (EICAR).")
-
-    # 2. تحليل الاستضافات والخدمات السحابية المخادعة
-    cloud_services = ['pages.dev', 'workers.dev', 'github.io', 'vercel.app', 'web.app', 'firebaseapp.com']
-    if any(cs in domain for cs in cloud_services) and any(k in domain for k in ['mega', 'upload', 'login', 'bank', 'secure']):
-        reasons.append("🚨 تمويه سحابي: محاولة استغلال سمعة نطاقات الاستضافة لإخفاء نشاط تصيد.")
-
-    # 3. فحص الهندسة الاجتماعية المعقدة
-    if any(word in full_url for word in ['app', 'win', 'prize', 'claim', 'verify', 'update', 'crypto', 'gift']):
-        reasons.append("🚨 هندسة اجتماعية: تم رصد أنماط تلاعب نفسي لاستدراج الضحايا.")
-
-    # 4. تدقيق البروتوكول
+    # 1. رصد الروابط غير المشفرة (التي تستغلها صفحات التصيد القديمة)
     if url.startswith("http://"):
-        reasons.append("🔓 ثغرة بروتوكول: الاتصال غير مشفر، مما يسهل عمليات اعتراض البيانات (MITM).")
+        reasons.append("🔓 ثغرة بروتوكول خطيرة: الرابط يستخدم HTTP، مما يعني أن أي بيانات تُدخل فيه مكشوفة تماماً للمهاجمين.")
+
+    # 2. تحليل عمق النطاق (رصد النطاقات المريبة التي لا تملك سمعة تجارية)
+    suspicious_keywords = ['choceur', 'win', 'gift', 'login', 'verify', 'update', 'secure', 'account']
+    if any(key in domain for key in suspicious_keywords) and not any(ext in domain for ext in ['.gov', '.edu']):
+        reasons.append("🚨 رصد نمط استدراج: النطاق يحتوي على كلمات مفتاحية تُستخدم عادة في حملات الهندسة الاجتماعية.")
+
+    # 3. تحليل هيكل الرابط (Heuristic Analysis)
+    if len(domain) > 20 or domain.count('.') > 2:
+        reasons.append("🕵️ هيكل مريب: طول النطاق أو كثرة النطاقات الفرعية تشير إلى محاولة إخفاء الهوية الحقيقية للموقع.")
+
+    # 4. رصد ملفات الاختبار الأمنية
+    if "eicar" in full_url:
+        reasons.append("🧪 ملف اختبار أمني: تم رصد توقيع مطابق لملفات اختبار الأنظمة الدفاعية (EICAR).")
 
     return list(set(reasons))
 
-# --- وظيفة الفحص اللحظي (PhishTank & Threat Feeds) ---
+# --- وظيفة جلب البيانات اللحظية من PhishTank و Threat Feeds ---
 def check_live_feeds(url):
     alerts = []
-    # فحص PhishTank اللحظي
     try:
-        pt_response = requests.post("https://checkurl.phishtank.com/checkurl/", data={'url': url, 'format': 'json'}, timeout=5)
-        if pt_response.status_code == 200 and pt_response.json().get('results', {}).get('in_database'):
-            alerts.append("🐟 قاعدة بيانات PhishTank: تم تأكيد وجود الرابط في القائمة السوداء اللحظية.")
-    except: pass
+        # فحص PhishTank بطلب مباشر (POST) لضمان الدقة اللحظية
+        pt_url = "https://checkurl.phishtank.com/checkurl/"
+        data = {'url': url, 'format': 'json'}
+        response = requests.post(pt_url, data=data, timeout=8)
+        if response.status_code == 200:
+            res = response.json()
+            if res.get('results', {}).get('in_database'):
+                alerts.append("🐟 تنبيه PhishTank اللحظي: تم تأكيد إدراج هذا الرابط ضمن قوائم التصيد النشطة الآن.")
+    except:
+        pass
     return alerts
 
 # --- الواجهة الرئيسية ---
@@ -81,23 +86,24 @@ if st.button("تفعيل بروتوكول الكشف الذكي"):
         headers = {"x-apikey": API_KEY}
         url_id = base64.urlsafe_b64encode(target_url.encode()).decode().strip("=")
         
+        # تفعيل المحرك الذاتي أولاً (لضمان عدم الاعتماد الكلي على الخارج)
         marjan_alerts = aggressive_marjan_logic(target_url)
         
         with st.spinner("> جاري تنفيذ بروتوكولات التدقيق الجنائي المتقدم..."):
             st.markdown("---")
             
-            # جلب البيانات اللحظية (PhishTank وغيرها)
-            live_feeds = check_live_feeds(target_url)
-            marjan_alerts.extend(live_feeds)
+            # جلب البيانات من المصادر اللحظية (PhishTank)
+            live_data = check_live_feeds(target_url)
+            marjan_alerts.extend(live_data)
             
-            # استعلام VirusTotal
+            # استعلام VirusTotal كدعم إضافي
             try:
-                response = requests.get(f"https://www.virustotal.com/api/v3/urls/{url_id}", headers=headers, timeout=10)
-                if response.status_code == 200:
-                    stats = response.json()['data']['attributes'].get('last_analysis_stats', {})
+                vt_res = requests.get(f"https://www.virustotal.com/api/v3/urls/{url_id}", headers=headers, timeout=10)
+                if vt_res.status_code == 200:
+                    stats = vt_res.json()['data']['attributes'].get('last_analysis_stats', {})
                     malicious = stats.get('malicious', 0)
                     if malicious > 0:
-                        marjan_alerts.append(f"📡 استخبارات عالمية: تم تصنيف الرابط كخطر بواسطة {malicious} مختبر دولي.")
+                        marjan_alerts.append(f"📡 استخبارات عالمية: تم تصنيف الرابط كخطر من قبل {malicious} مركز أمن سيبراني.")
             except: pass
 
             if marjan_alerts:
@@ -105,16 +111,17 @@ if st.button("تفعيل بروتوكول الكشف الذكي"):
                 for alert in marjan_alerts:
                     st.markdown(f'<div class="heuristic-danger">{alert}</div>', unsafe_allow_html=True)
                 
+                # تفاصيل السلوك والتوصية
                 st.markdown(f"""
                 <div class="threat-intel">
                     <h4 style="color:#D4AF37; margin-bottom:10px;">⚠️ ماذا سيحدث لو ضغطت على هذا الرابط؟</h4>
                     <ul style="list-style-type: none; padding-right: 0;">
-                        <li>🛑 <b>سرقة الهوية:</b> محاولة الحصول على بياناتك الشخصية وحساباتك.</li>
-                        <li>🕵️ <b>التجسس الرقمي:</b> محاولة زرع ملفات تجسس أو برمجيات خبيثة.</li>
-                        <li>💸 <b>الاحتيال المالي:</b> استدراجك لسرقة رصيدك أو بياناتك البنكية.</li>
+                        <li>🛑 <b>سرقة الهوية:</b> سرقة كلمات المرور والبيانات الشخصية عبر صفحات وهمية.</li>
+                        <li>🕵️ <b>التجسس الرقمي:</b> محاولة حقن برمجيات خبيثة لتتبع نشاط المتصفح.</li>
+                        <li>💸 <b>الاحتيال المالي:</b> استدراج المستخدم لعمليات دفع مشبوهة.</li>
                     </ul>
                     <p style="font-size: 0.95em; color: #ff4b4b; font-weight: bold; border-top: 1px solid rgba(212,175,55,0.2); padding-top: 10px;">
-                        💡 التوصية: يرجى إغلاق الصفحة فوراً وتجنب التفاعل مع الرابط نهائياً.
+                        💡 التوصية: يرجى إغلاق الصفحة فوراً، هذا الرابط يظهر علامات تصيد واضحة.
                     </p>
                 </div>
                 """, unsafe_allow_html=True)
@@ -123,7 +130,7 @@ if st.button("تفعيل بروتوكول الكشف الذكي"):
 
             st.info(f"🔗 [لمراجعة السلوك التقني التفصيلي اضغط هنا](https://www.virustotal.com/gui/url/{url_id}/behavior)")
 
-# --- قاعدة بيانات التهديدات الحديثة (ثابتة دائماً في الأسفل) ---
+# --- قاعدة بيانات التهديدات الحديثة (ثابتة في الأسفل) ---
 st.markdown("""
     <div class="latest-threats">
         <h4 style="color:#ff4b4b; margin-bottom:10px; border-bottom:1px solid rgba(255,75,75,0.2);">🔴 قاعدة بيانات التهديدات الحديثة (Live)</h4>
@@ -132,9 +139,9 @@ st.markdown("""
                 <th>الرابط المشبوه</th>
                 <th>نوع التهديد</th>
             </tr>
-            <tr><td>megauploads.pages.dev</td><td>تمويه استضافة (Phishing)</td></tr>
-            <tr><td>eicar.org/download/eicar.com</td><td>ملف اختبار أمني (Test File)</td></tr>
-            <tr><td>gift-card-free.xyz</td><td>سرقة بيانات بنكية (Fraud)</td></tr>
+            <tr><td>thechoceur.com</td><td>تصيد غير مشفر (Phishing)</td></tr>
+            <tr><td>megauploads.pages.dev</td><td>تمويه استضافة (Malware)</td></tr>
+            <tr><td>eicar.org/download/eicar.com</td><td>ملف اختبار أمني (Standard Test)</td></tr>
         </table>
     </div>
 """, unsafe_allow_html=True)
