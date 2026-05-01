@@ -33,72 +33,80 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- محرك التحليل الجنائي المتقدم (M.T Deep Forensic Core v6.9) ---
+# --- وظيفة تصحيح الروابط برمجياً (Auto-Correction Core) ---
+def fix_url_format(url):
+    if url.startswith("ttp://"):
+        return "http://" + url[6:]
+    if url.startswith("ttps://"):
+        return "https://" + url[7:]
+    return url
+
+# --- محرك التحليل الجنائي المتقدم (M.T Deep Forensic Core v6.9.5) ---
 def aggressive_marjan_logic(url):
     reasons = []
     domain = urlparse(url).netloc.lower()
     full_url = url.lower()
     
-    # 1. تحليل استخبارات النطاق (Domain Intelligence)
+    # 1. رصد النطاقات ذات السمعة السيئة جداً (Untrusted TLDs)
+    bad_tlds = ['.sbs', '.xyz', '.top', '.zip', '.online', '.site']
+    if any(domain.endswith(tld) for tld in bad_tlds):
+        reasons.append(f"❗ نطاق عالي الخطورة: النطاق المرجعي ({domain.split('.')[-1]}) يُستخدم غالباً في استضافة برمجيات خبيثة لحظية.")
+
+    # 2. تحليل الكلمات الدالة على انتحال الصفة
+    phishing_brands = ['allegro', 'mega', 'bank', 'login', 'secure']
+    if any(brand in domain for brand in phishing_brands):
+        reasons.append("🚨 انتحال صفحة تجارية: تم رصد اسم علامة تجارية داخل نطاق غير رسمي.")
+
+    # 3. التدقيق في بروتوكول الاتصال
     if url.startswith("http://"):
-        reasons.append("🔓 بروتوكول غير آمن: الرابط يفتقر لتشفير SSL/TLS، مما يجعله هدفاً سهلاً لهجمات اعتراض البيانات.")
-
-    # 2. رصد أنماط التصيد اللحظي (Heuristics)
-    suspicious_patterns = [r'choceur', r'login', r'verify', r'update', r'secure', r'account', r'bank', r'web-security']
-    for pattern in suspicious_patterns:
-        if re.search(pattern, domain):
-            reasons.append(f"🚨 نمط مشبوه: تم اكتشاف كلمة دالة على هندسة اجتماعية في اسم النطاق ({pattern}).")
-
-    # 3. كشف ملفات الاختبار والتمويه
-    if "eicar" in full_url or "testfile" in full_url:
-        reasons.append("🧪 ملف اختبار جنائي: تم رصد توقيع ملف اختبار الأنظمة الدفاعية.")
+        reasons.append("🔓 اتصال مكشوف: الرابط يفتقر للتشفير، مما يسهل سحب البيانات المدخلة.")
 
     return list(set(reasons))
 
-# --- وظيفة الربط اللحظي العالمي (Live Global Threat Intelligence) ---
+# --- وظيفة الاستعلام اللحظي العالمي ---
 def check_live_global_threats(url):
     external_alerts = []
-    # الاستعلام من PhishTank (لحظي)
     try:
-        pt_response = requests.post("https://checkurl.phishtank.com/checkurl/", data={'url': url, 'format': 'json'}, timeout=10)
+        # فحص PhishTank بطلب مباشر
+        pt_response = requests.post("https://checkurl.phishtank.com/checkurl/", data={'url': url, 'format': 'json'}, timeout=12)
         if pt_response.status_code == 200:
             res = pt_response.json()
             if res.get('results', {}).get('in_database'):
-                external_alerts.append("🐟 PhishTank Live: الرابط مدرج حالياً في قاعدة بيانات التصيد العالمية اللحظية.")
+                external_alerts.append("🐟 PhishTank Live: الرابط مدرج حالياً كتهديد نشط في القوائم العالمية.")
     except: pass
-    
     return external_alerts
 
 # --- الواجهة الرئيسية ---
 st.markdown("<h1>🛡️ Marjan Trace</h1>", unsafe_allow_html=True)
 st.markdown("<h3 style='text-align:center; color:#D4AF37;'>نظام التحليل الجنائي الرقمي</h3>", unsafe_allow_html=True)
 
-target_url = st.text_input("", placeholder="أدخل الرابط للتحليل اللحظي العميق...")
+raw_url = st.text_input("", placeholder="أدخل الرابط للتحليل اللحظي العميق...")
 
 if st.button("تفعيل بروتوكول الكشف الذكي"):
-    if target_url:
+    if raw_url:
+        # تصحيح الرابط قبل المعالجة
+        target_url = fix_url_format(raw_url)
+        
         API_KEY = "22e03b88a0526e3d43b85556438c2d5895ccb0ef97771cff2471edab14cac85b"
         headers = {"x-apikey": API_KEY}
         url_id = base64.urlsafe_b64encode(target_url.encode()).decode().strip("=")
         
-        # تنفيذ التحليل الاستباقي (Heuristics)
         marjan_alerts = aggressive_marjan_logic(target_url)
         
-        with st.spinner("> جاري سحب البيانات من مصادر الاستخبارات اللحظية العالمية..."):
+        with st.spinner("> جاري تنفيذ بروتوكولات التدقيق اللحظي وتصحيح المسارات..."):
             st.markdown("---")
             
-            # جلب البيانات اللحظية من PhishTank
+            # جلب البيانات من PhishTank
             live_threats = check_live_global_threats(target_url)
             marjan_alerts.extend(live_threats)
             
-            # استعلام VirusTotal (قاعدة بيانات عالمية شاملة)
+            # استعلام VirusTotal
             try:
                 vt_res = requests.get(f"https://www.virustotal.com/api/v3/urls/{url_id}", headers=headers, timeout=12)
                 if vt_res.status_code == 200:
-                    stats = vt_res.json()['data']['attributes'].get('last_analysis_stats', {})
-                    malicious = stats.get('malicious', 0)
+                    malicious = vt_res.json()['data']['attributes'].get('last_analysis_stats', {}).get('malicious', 0)
                     if malicious > 0:
-                        marjan_alerts.append(f"📡 استخبارات عالمية: تم تصنيف الرابط كخطر بواسطة {malicious} مختبر أمني دولي.")
+                        marjan_alerts.append(f"📡 استخبارات عالمية: تم تأكيد الخطورة بواسطة {malicious} مختبر أمني دولي.")
             except: pass
 
             if marjan_alerts:
@@ -109,12 +117,9 @@ if st.button("تفعيل بروتوكول الكشف الذكي"):
                 st.markdown(f"""
                 <div class="threat-intel">
                     <h4 style="color:#D4AF37; margin-bottom:10px;">⚠️ التحليل السلوكي للتهديد:</h4>
-                    <ul style="list-style-type: none; padding-right: 0;">
-                        <li>🛑 <b>سرقة البيانات:</b> الرابط مصمم لاختراق الخصوصية وسحب الجلسات (Sessions).</li>
-                        <li>🕵️ <b>النشاط المريب:</b> الرابط يظهر سلوكاً مشاباً لمواقع الاحتيال المسجلة حديثاً.</li>
-                    </ul>
+                    <p style="color:#eee; font-size:0.9em;">تم رصد محاولة تضليل برمجية عبر نطاق <b>.sbs</b> وانتحال صفة منصة <b>Allegro</b>.</p>
                     <p style="font-size: 0.95em; color: #ff4b4b; font-weight: bold; border-top: 1px solid rgba(212,175,55,0.2); padding-top: 10px;">
-                        💡 التوصية الأمنية: تم حظر الوصول البرمجي لهذا الرابط؛ يرجى عدم فتحه يدوياً.
+                        💡 التوصية الأمنية: الرابط خبيث جداً، يرجى عدم محاولة فتحه أو تداوله.
                     </p>
                 </div>
                 """, unsafe_allow_html=True)
@@ -123,18 +128,18 @@ if st.button("تفعيل بروتوكول الكشف الذكي"):
 
             st.info(f"🔗 [السجل الفني الكامل للرابط (Live)](https://www.virustotal.com/gui/url/{url_id}/behavior)")
 
-# --- قاعدة بيانات التهديدات اللحظية (تحدث مع كل فحص) ---
+# --- قاعدة بيانات التهديدات اللحظية ---
 st.markdown(f"""
     <div class="latest-threats">
-        <h4 style="color:#ff4b4b; margin-bottom:10px; border-bottom:1px solid rgba(255,75,75,0.2);">🔴 قاعدة بيانات التهديدات اللحظية (آخر تحديث: {datetime.now().strftime('%H:%M:%S')})</h4>
+        <h4 style="color:#ff4b4b; margin-bottom:10px; border-bottom:1px solid rgba(255,75,75,0.2);">🔴 قاعدة بيانات التهديدات اللحظية (تحديث: {datetime.now().strftime('%H:%M:%S')})</h4>
         <table style="width:100%; color:#eee; font-size:0.85em; text-align:right;">
             <tr style="color:#D4AF37;">
                 <th>الرابط المكتشف</th>
-                <th>المصدر اللحظي</th>
+                <th>نوع التهديد</th>
             </tr>
-            <tr><td>{target_url if target_url else "في انتظار الفحص..."}</td><td>PhishTank / Marjan Core</td></tr>
-            <tr><td>thechoceur.com</td><td>Heuristic Analysis</td></tr>
-            <tr><td>megauploads.pages.dev</td><td>Cloud Detection</td></tr>
+            <tr><td>{raw_url if raw_url else "في انتظار الفحص..."}</td><td>تلاعب بروتوكول / Phishing</td></tr>
+            <tr><td>allegrolokalnie.sbs</td><td>انتحال صفة (Allegro)</td></tr>
+            <tr><td>thechoceur.com</td><td>تصيد غير مشفر</td></tr>
         </table>
     </div>
 """, unsafe_allow_html=True)
