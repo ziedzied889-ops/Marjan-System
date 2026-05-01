@@ -8,18 +8,82 @@ from urllib.parse import urlparse
 # --- إعدادات الصفحة ---
 st.set_page_config(page_title="Marjan Trace", page_icon="🛡️", layout="centered")
 
-# --- التنسيق البصري الاحترافي ---
+# --- التنسيق البصري الاحترافي مع الخلفية الرقمية ---
 st.markdown("""
     <style>
-    .main { background-color: #05070a; }
-    .stApp { background-color: #05070a; }
-    h1 { color: #D4AF37 !important; text-align: center; text-shadow: 2px 2px #000; }
-    h3 { color: #D4AF37 !important; text-align: center; }
-    .stButton>button { width: 100%; background-color: #D4AF37 !important; color: black !important; font-weight: bold; border-radius: 15px; height: 3.5em; border: none; transition: 0.3s; }
-    .stButton>button:hover { background-color: #B8962E !important; transform: scale(1.02); }
-    .footer { position: fixed; left: 0; bottom: 0; width: 100%; text-align: center; color: #D4AF37; padding: 10px; background-color: #0a0c10; font-weight: bold; border-top: 1px solid #D4AF37; }
-    .result-box { padding: 20px; border-radius: 15px; border: 1px solid #D4AF37; background-color: #000000; text-align: right; margin-bottom: 10px; }
-    .heuristic-warning { padding: 15px; border-radius: 10px; border: 1px solid #ff4b4b; background-color: #2b0b0b; color: #ff9999; text-align: right; margin-bottom: 15px; font-size: 0.9em; }
+    /* إضافة خلفية رقمية متحركة أو ثابتة ذات طابع سيبراني */
+    .stApp {
+        background-image: linear-gradient(rgba(5, 7, 10, 0.8), rgba(5, 7, 10, 0.8)), 
+        url("https://www.transparenttextures.com/patterns/carbon-fibre.png"); /* نمط ألياف الكربون لإعطاء ملمس تقني */
+        background-color: #05070a;
+        background-attachment: fixed;
+    }
+    
+    .main { 
+        background: transparent; 
+    }
+
+    h1 { color: #D4AF37 !important; text-align: center; text-shadow: 2px 2px 5px #000; font-family: 'Courier New', Courier, monospace; }
+    h3 { color: #D4AF37 !important; text-align: center; font-weight: normal; }
+    
+    .stButton>button { 
+        width: 100%; 
+        background-color: #D4AF37 !important; 
+        color: black !important; 
+        font-weight: bold; 
+        border-radius: 15px; 
+        height: 3.5em; 
+        border: 1px solid #D4AF37; 
+        transition: 0.3s;
+        box-shadow: 0px 0px 15px rgba(212, 175, 55, 0.2);
+    }
+    
+    .stButton>button:hover { 
+        background-color: #B8962E !important; 
+        transform: scale(1.02); 
+        box-shadow: 0px 0px 25px rgba(212, 175, 55, 0.4);
+    }
+
+    .footer { 
+        position: fixed; 
+        left: 0; 
+        bottom: 0; 
+        width: 100%; 
+        text-align: center; 
+        color: #D4AF37; 
+        padding: 10px; 
+        background-color: rgba(10, 12, 16, 0.9); 
+        font-weight: bold; 
+        border-top: 1px solid #D4AF37; 
+    }
+
+    .result-box { 
+        padding: 20px; 
+        border-radius: 15px; 
+        border: 1px solid #D4AF37; 
+        background-color: rgba(0, 0, 0, 0.8); 
+        text-align: right; 
+        margin-bottom: 10px; 
+        backdrop-filter: blur(5px);
+    }
+
+    .heuristic-warning { 
+        padding: 15px; 
+        border-radius: 10px; 
+        border: 1px solid #ff4b4b; 
+        background-color: rgba(43, 11, 11, 0.8); 
+        color: #ff9999; 
+        text-align: right; 
+        margin-bottom: 15px; 
+        font-size: 0.9em; 
+    }
+    
+    /* تحسين شكل حقول الإدخال */
+    .stTextInput>div>div>input {
+        background-color: rgba(255, 255, 255, 0.05) !important;
+        color: white !important;
+        border: 1px solid rgba(212, 175, 55, 0.3) !important;
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -38,7 +102,7 @@ def advanced_heuristic_analysis(url):
     if any(trigger in url.lower() for trigger in phishing_triggers):
         alerts.append("❗ كلمات مريبة: الرابط يحتوي على مصطلحات تُستخدم عادةً لاستدراج الضحايا.")
     
-    # 3. كشف استغلال الخدمات المجانية (مثل Canva التي خدعتنا سابقاً)
+    # 3. كشف استغلال الخدمات المجانية
     free_hosting = ['canva.site', 'wixsite.com', 'web.app', 'firebaseapp.com', 'github.io']
     if any(service in domain for service in free_hosting):
         alerts.append(f"⚠️ نطاق فرعي مريب: يتم استضافة الصفحة على خدمة مجانية ({domain})، غالباً ما تُستغل للتصيد.")
@@ -63,16 +127,15 @@ if st.button("تشغيل الفحص الرقمي"):
     if not target_url:
         st.warning("⚠️ يرجى إدخال رابط للفحص")
     else:
-        # البدء بالتحليل الذاتي أولاً
         heuristic_results = advanced_heuristic_analysis(target_url)
         
+        # ملاحظة: تأكد من حماية مفتاح الـ API الخاص بك عند النشر الفعلي
         API_KEY = "22e03b88a0526e3d43b85556438c2d5895ccb0ef97771cff2471edab14cac85b"
         headers = {"x-apikey": API_KEY}
         url_id = base64.urlsafe_b64encode(target_url.encode()).decode().strip("=")
         
         with st.spinner("> جاري الفحص المعمق ودمج النتائج الذكية..."):
             try:
-                # طلب البيانات من VirusTotal
                 response = requests.get(f"https://www.virustotal.com/api/v3/urls/{url_id}", headers=headers)
                 
                 if response.status_code == 404:
@@ -82,13 +145,11 @@ if st.button("تشغيل الفحص الرقمي"):
 
                 st.markdown("---")
 
-                # عرض نتائج التحليل الذاتي (Heuristic)
                 if heuristic_results:
                     st.subheader("🕵️ نتائج التحليل الاستباقي (مرجان الذكي):")
                     for alert in heuristic_results:
                         st.markdown(f'<div class="heuristic-warning">{alert}</div>', unsafe_allow_html=True)
                 
-                # عرض نتائج قواعد البيانات العالمية
                 if response.status_code == 200:
                     data = response.json()['data']['attributes']
                     if 'last_analysis_stats' in data:
