@@ -8,21 +8,37 @@ from urllib.parse import urlparse
 # --- إعدادات الصفحة ---
 st.set_page_config(page_title="Marjan Trace", page_icon="🛡️", layout="centered")
 
-# --- التنسيق البصري القوي (الخلفية الرقمية المفروضة) ---
+# --- التنسيق البصري المتطور مع درع الأمن السيبراني ---
 st.markdown("""
     <style>
-    /* فرض الخلفية الرقمية على كل طبقات التطبيق */
+    /* إعداد الخلفية الأساسية مع الشبكة والدرع */
     [data-testid="stAppViewContainer"] {
         background-color: #05070a !important;
         background-image: 
+            /* طبقة الدرع الأمني في المنتصف */
+            url("https://www.transparentpng.com/download/security/shield-security-icon-9.png"),
+            /* طبقة الشبكة الرقمية */
             linear-gradient(rgba(212, 175, 55, 0.03) 1px, transparent 1px),
             linear-gradient(90deg, rgba(212, 175, 55, 0.03) 1px, transparent 1px),
+            /* التدرج اللوني العميق */
             radial-gradient(circle at center, #11141a 0%, #05070a 100%) !important;
-        background-size: 30px 30px, 30px 30px, 100% 100% !important;
+        
+        /* إعدادات التموضع: الدرع في المنتصف، الشبكة متكررة */
+        background-position: center 40%, center, center, center !important;
+        background-repeat: no-repeat, repeat, repeat, no-repeat !important;
+        background-size: 400px auto, 30px 30px, 30px 30px, 100% 100% !important;
         background-attachment: fixed !important;
     }
 
-    /* إزالة أي خلفيات بيضاء أو رمادية من الحاويات */
+    /* جعل الدرع يبدو كعلامة مائية (شفافية خفيفة) */
+    [data-testid="stAppViewContainer"]::before {
+        content: "";
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background-color: rgba(5, 7, 10, 0.4); /* تعتيم إضافي ليظهر الدرع بشكل خافت */
+        z-index: -1;
+    }
+
     [data-testid="stHeader"], [data-testid="stToolbar"] {
         background: transparent !important;
     }
@@ -31,83 +47,80 @@ st.markdown("""
         background: transparent !important; 
     }
 
-    /* العناوين والتوهج الذهبي */
+    /* العناوين مع توهج ذهبي */
     h1 { 
         color: #D4AF37 !important; 
         text-align: center; 
-        text-shadow: 0px 0px 15px rgba(212, 175, 55, 0.6) !important; 
+        text-shadow: 0px 0px 20px rgba(212, 175, 55, 0.8) !important; 
         font-family: 'Courier New', Courier, monospace; 
-        margin-top: -50px;
+        margin-top: -30px;
+        font-weight: bold;
     }
     h3 { 
         color: #D4AF37 !important; 
         text-align: center; 
-        font-weight: normal; 
-        opacity: 0.8;
+        font-weight: normal;
+        background: rgba(0,0,0,0.4);
+        display: inline-block;
+        padding: 5px 20px;
+        border-radius: 50px;
+        width: 100%;
     }
     
-    /* تصميم الأزرار الاحترافي */
+    /* تصميم الأزرار */
     .stButton>button { 
         width: 100%; 
         background-color: #D4AF37 !important; 
         color: black !important; 
         font-weight: bold; 
-        border-radius: 10px; 
-        height: 3.5em; 
-        border: none; 
-        transition: 0.4s;
-        box-shadow: 0px 4px 15px rgba(212, 175, 55, 0.3);
+        border-radius: 12px; 
+        height: 3.8em; 
+        border: 1px solid #D4AF37; 
+        transition: 0.5s;
+        box-shadow: 0px 0px 20px rgba(212, 175, 55, 0.3);
+        text-transform: uppercase;
     }
     
     .stButton>button:hover { 
-        background-color: #f1c40f !important; 
-        transform: translateY(-2px); 
-        box-shadow: 0px 8px 25px rgba(212, 175, 55, 0.5);
+        background-color: #f39c12 !important; 
+        transform: scale(1.01); 
+        box-shadow: 0px 0px 40px rgba(212, 175, 55, 0.6);
     }
 
-    /* التذييل أسفل الصفحة */
+    /* التذييل */
     .footer { 
         position: fixed; 
-        left: 0; 
-        bottom: 0; 
-        width: 100%; 
+        left: 0; bottom: 0; width: 100%; 
         text-align: center; 
         color: #D4AF37; 
-        padding: 10px; 
-        background-color: rgba(5, 7, 10, 0.95); 
+        padding: 12px; 
+        background-color: rgba(5, 7, 10, 0.98); 
         font-weight: bold; 
         border-top: 1px solid #D4AF37; 
         z-index: 100;
+        letter-spacing: 1px;
     }
 
-    /* صناديق النتائج بتأثير زجاجي */
+    /* صناديق النتائج الزجاجية المعتمة */
     .result-box { 
-        padding: 20px; 
-        border-radius: 15px; 
-        border: 1px solid rgba(212, 175, 55, 0.3); 
-        background-color: rgba(0, 0, 0, 0.6); 
+        padding: 25px; 
+        border-radius: 20px; 
+        border: 1px solid rgba(212, 175, 55, 0.4); 
+        background-color: rgba(0, 0, 0, 0.75); 
         text-align: right; 
-        margin-bottom: 10px; 
-        backdrop-filter: blur(10px);
+        margin-top: 20px;
+        backdrop-filter: blur(15px);
+        box-shadow: 0px 10px 30px rgba(0,0,0,0.8);
     }
 
-    .heuristic-warning { 
-        padding: 15px; 
-        border-radius: 10px; 
-        border: 1px solid #ff4b4b; 
-        background-color: rgba(43, 11, 11, 0.7); 
-        color: #ff9999; 
-        text-align: right; 
-        margin-bottom: 15px; 
-        font-size: 0.9em; 
-    }
-    
-    /* حقل إدخال الرابط */
+    /* حقل الإدخال */
     .stTextInput>div>div>input {
-        background-color: rgba(255, 255, 255, 0.05) !important;
-        color: white !important;
-        border: 1px solid rgba(212, 175, 55, 0.5) !important;
+        background-color: rgba(255, 255, 255, 0.07) !important;
+        color: #D4AF37 !important;
+        border: 1px solid rgba(212, 175, 55, 0.6) !important;
         text-align: center;
+        border-radius: 10px !important;
+        font-size: 1.2rem !important;
     }
     </style>
     """, unsafe_allow_html=True)
