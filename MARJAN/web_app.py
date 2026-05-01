@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 # --- إعدادات الصفحة ---
 st.set_page_config(page_title="Marjan Trace", page_icon="🛡️", layout="centered")
 
-# --- التنسيق البصري (v6.3 الأصلي - ثبات كامل) ---
+# --- التنسيق البصري (ثبات كامل للواجهة v6.3) ---
 st.markdown("""
     <style>
     [data-testid="stAppViewContainer"] {
@@ -32,40 +32,42 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- وظيفة فحص PhishTank (إضافة جديدة) ---
-def check_phishtank(url):
-    try:
-        # استخدام واجهة PhishTank للتحقق اللحظي
-        pt_url = "https://checkurl.phishtank.com/checkurl/"
-        data = {'url': url, 'format': 'json'}
-        response = requests.post(pt_url, data=data, timeout=5)
-        if response.status_code == 200:
-            result = response.json()
-            if result.get('results', {}).get('in_database', False):
-                return True
-    except:
-        pass
-    return False
-
-# --- محرك التحليل الجنائي المتقدم (M.T Deep Forensic Core v6.6) ---
+# --- محرك التحليل الجنائي المتقدم (M.T Deep Forensic Core v6.7) ---
 def aggressive_marjan_logic(url):
     reasons = []
     domain = urlparse(url).netloc.lower()
     full_url = url.lower()
     
-    # تحسين رصد الاستضافات المخادعة
-    cloud_hosting = ['pages.dev', 'workers.dev', 'github.io', 'vercel.app']
-    if any(h in domain for h in cloud_hosting) and any(k in domain for k in ['mega', 'login', 'secure']):
-        reasons.append("🚨 تمويه سحابي: محاولة استخدام منصات موثوقة لإخفاء نشاط تصيد.")
+    # 1. رصد ملفات الاختبار الأمنية (EICAR & Test Patterns)
+    test_signatures = ['eicar', 'testfile', 'malware-test', 'signature-test']
+    if any(sig in full_url for sig in test_signatures):
+        reasons.append("🧪 ملف اختبار أمني: تم رصد توقيع مطابق لملفات اختبار الأنظمة الدفاعية (EICAR).")
 
+    # 2. تحليل الاستضافات والخدمات السحابية المخادعة
+    cloud_services = ['pages.dev', 'workers.dev', 'github.io', 'vercel.app', 'web.app', 'firebaseapp.com']
+    if any(cs in domain for cs in cloud_services) and any(k in domain for k in ['mega', 'upload', 'login', 'bank', 'secure']):
+        reasons.append("🚨 تمويه سحابي: محاولة استغلال سمعة نطاقات الاستضافة لإخفاء نشاط تصيد.")
+
+    # 3. فحص الهندسة الاجتماعية المعقدة
+    if any(word in full_url for word in ['app', 'win', 'prize', 'claim', 'verify', 'update', 'crypto', 'gift']):
+        reasons.append("🚨 هندسة اجتماعية: تم رصد أنماط تلاعب نفسي لاستدراج الضحايا.")
+
+    # 4. تدقيق البروتوكول
     if url.startswith("http://"):
-        reasons.append("🔓 ثغرة بروتوكول: الاتصال غير مشفر ومعرض للاعتراض.")
-
-    # فحص الكلمات المفتاحية للهندسة الاجتماعية
-    if any(word in full_url for word in ['win', 'prize', 'claim', 'verify', 'update', 'bank']):
-        reasons.append("🚨 هندسة اجتماعية: تم رصد أنماط استدراج وتلاعب نفسي.")
+        reasons.append("🔓 ثغرة بروتوكول: الاتصال غير مشفر، مما يسهل عمليات اعتراض البيانات (MITM).")
 
     return list(set(reasons))
+
+# --- وظيفة الفحص اللحظي (PhishTank & Threat Feeds) ---
+def check_live_feeds(url):
+    alerts = []
+    # فحص PhishTank اللحظي
+    try:
+        pt_response = requests.post("https://checkurl.phishtank.com/checkurl/", data={'url': url, 'format': 'json'}, timeout=5)
+        if pt_response.status_code == 200 and pt_response.json().get('results', {}).get('in_database'):
+            alerts.append("🐟 قاعدة بيانات PhishTank: تم تأكيد وجود الرابط في القائمة السوداء اللحظية.")
+    except: pass
+    return alerts
 
 # --- الواجهة الرئيسية ---
 st.markdown("<h1>🛡️ Marjan Trace</h1>", unsafe_allow_html=True)
@@ -81,18 +83,19 @@ if st.button("تفعيل بروتوكول الكشف الذكي"):
         
         marjan_alerts = aggressive_marjan_logic(target_url)
         
-        with st.spinner("> جاري تنفيذ بروتوكولات التدقيق الجنائي..."):
+        with st.spinner("> جاري تنفيذ بروتوكولات التدقيق الجنائي المتقدم..."):
             st.markdown("---")
             
-            # 1. الاستعلام من PhishTank (لحظي)
-            if check_phishtank(target_url):
-                marjan_alerts.append("🐟 تنبيه PhishTank: تم العثور على الرابط في قاعدة بيانات التصيد اللحظية.")
+            # جلب البيانات اللحظية (PhishTank وغيرها)
+            live_feeds = check_live_feeds(target_url)
+            marjan_alerts.extend(live_feeds)
             
-            # 2. الاستعلام من VirusTotal
+            # استعلام VirusTotal
             try:
                 response = requests.get(f"https://www.virustotal.com/api/v3/urls/{url_id}", headers=headers, timeout=10)
                 if response.status_code == 200:
-                    malicious = response.json()['data']['attributes'].get('last_analysis_stats', {}).get('malicious', 0)
+                    stats = response.json()['data']['attributes'].get('last_analysis_stats', {})
+                    malicious = stats.get('malicious', 0)
                     if malicious > 0:
                         marjan_alerts.append(f"📡 استخبارات عالمية: تم تصنيف الرابط كخطر بواسطة {malicious} مختبر دولي.")
             except: pass
@@ -102,26 +105,25 @@ if st.button("تفعيل بروتوكول الكشف الذكي"):
                 for alert in marjan_alerts:
                     st.markdown(f'<div class="heuristic-danger">{alert}</div>', unsafe_allow_html=True)
                 
-                # قسم التوعية والتوصية
                 st.markdown(f"""
                 <div class="threat-intel">
                     <h4 style="color:#D4AF37; margin-bottom:10px;">⚠️ ماذا سيحدث لو ضغطت على هذا الرابط؟</h4>
                     <ul style="list-style-type: none; padding-right: 0;">
-                        <li>🛑 <b>سرقة الهوية:</b> محاولة الحصول على كلمات مرورك وبياناتك البنكية.</li>
-                        <li>🕵️ <b>التجسس الرقمي:</b> زرع برمجيات خبيثة لتتبع نشاطك.</li>
-                        <li>💸 <b>الاحتيال المالي:</b> استدراجك لعمليات دفع وهمية.</li>
+                        <li>🛑 <b>سرقة الهوية:</b> محاولة الحصول على بياناتك الشخصية وحساباتك.</li>
+                        <li>🕵️ <b>التجسس الرقمي:</b> محاولة زرع ملفات تجسس أو برمجيات خبيثة.</li>
+                        <li>💸 <b>الاحتيال المالي:</b> استدراجك لسرقة رصيدك أو بياناتك البنكية.</li>
                     </ul>
                     <p style="font-size: 0.95em; color: #ff4b4b; font-weight: bold; border-top: 1px solid rgba(212,175,55,0.2); padding-top: 10px;">
-                        💡 التوصية: يرجى إغلاق الصفحة فوراً وتجنب التفاعل مع المحتوى.
+                        💡 التوصية: يرجى إغلاق الصفحة فوراً وتجنب التفاعل مع الرابط نهائياً.
                     </p>
                 </div>
                 """, unsafe_allow_html=True)
             else:
-                st.success("✅ محرك مرجان: لم يتم رصد تهديدات هيكلية واضحة.")
+                st.success("✅ محرك مرجان: لم يتم رصد تهديدات هيكلية واضحة، لكن يرجى الحذر دائماً.")
 
             st.info(f"🔗 [لمراجعة السلوك التقني التفصيلي اضغط هنا](https://www.virustotal.com/gui/url/{url_id}/behavior)")
 
-# --- قاعدة بيانات التهديدات الحديثة (ثابتة في الأسفل) ---
+# --- قاعدة بيانات التهديدات الحديثة (ثابتة دائماً في الأسفل) ---
 st.markdown("""
     <div class="latest-threats">
         <h4 style="color:#ff4b4b; margin-bottom:10px; border-bottom:1px solid rgba(255,75,75,0.2);">🔴 قاعدة بيانات التهديدات الحديثة (Live)</h4>
@@ -131,10 +133,10 @@ st.markdown("""
                 <th>نوع التهديد</th>
             </tr>
             <tr><td>megauploads.pages.dev</td><td>تمويه استضافة (Phishing)</td></tr>
-            <tr><td>update-system-win11.top</td><td>برمجيات فدية (Ransomware)</td></tr>
+            <tr><td>eicar.org/download/eicar.com</td><td>ملف اختبار أمني (Test File)</td></tr>
             <tr><td>gift-card-free.xyz</td><td>سرقة بيانات بنكية (Fraud)</td></tr>
         </table>
     </div>
 """, unsafe_allow_html=True)
 
-st.markdown(f'<div class="footer">Eng. Zaid Al-Janabi | Marjan Trace v6.6 | Advanced Forensic Detection</div>', unsafe_allow_html=True)
+st.markdown(f'<div class="footer">Eng. Zaid Al-Janabi | Marjan Trace v6.3 | Advanced Forensic Detection</div>', unsafe_allow_html=True)
