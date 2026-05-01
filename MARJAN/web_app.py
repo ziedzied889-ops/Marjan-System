@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 # --- إعدادات الصفحة ---
 st.set_page_config(page_title="Marjan Trace", page_icon="🛡️", layout="centered")
 
-# --- التنسيق البصري (ثبات كامل للواجهة) ---
+# --- التنسيق البصري (ثبات كامل للواجهة مع إضافة الرادار) ---
 st.markdown("""
     <style>
     [data-testid="stAppViewContainer"] {
@@ -28,12 +28,25 @@ st.markdown("""
     .heuristic-danger { padding: 15px; border-radius: 10px; border-right: 6px solid #ff4b4b; background-color: rgba(255, 75, 75, 0.25); color: #ff9999; text-align: right; margin-bottom: 10px; font-weight: bold; border-left: 1px solid rgba(255,75,75,0.4); }
     .threat-intel { padding: 15px; border-radius: 10px; background-color: rgba(212, 175, 55, 0.1); border: 1px solid #D4AF37; color: #eee; text-align: right; margin-top: 15px; }
     .footer { position: fixed; left: 0; bottom: 0; width: 100%; text-align: center; color: #D4AF37; padding: 10px; background-color: rgba(5, 7, 10, 0.98); border-top: 1px solid #D4AF37; }
+    
+    /* رادار الخطورة */
+    .risk-radar {
+        padding: 25px;
+        border-radius: 50% 50% 15px 15px;
+        border: 2px solid #D4AF37;
+        background: rgba(10, 15, 20, 0.9);
+        box-shadow: 0 0 40px rgba(212, 175, 55, 0.2);
+        text-align: center;
+        margin: 20px auto;
+        max-width: 400px;
+    }
     </style>
     """, unsafe_allow_html=True)
 
 # --- محرك التحليل الجنائي المتقدم (M.T Deep Forensic Core v6.3) ---
 def aggressive_marjan_logic(url):
     reasons = []
+    score = 0 # نظام النقاط للرادار
     domain = urlparse(url).netloc.lower()
     full_url = url.lower()
     path = urlparse(url).path.lower()
@@ -41,18 +54,22 @@ def aggressive_marjan_logic(url):
     social_threats = ['app', 'cliente', 'merit', 'king', 'bet', 'win', 'prize', 'bonus', 'claim', 'verify', 'update', 'vave', 'login', 'crypto', 'divida', 'debt', 'zero', 'loan', 'gift']
     if any(word in full_url for word in social_threats):
         reasons.append("🚨 هندسة اجتماعية: تم رصد استخدام كلمات استدراج لتمويه المستخدم (مثل App/Cliente).")
+        score += 40
 
     if url.startswith("http://"):
         reasons.append("🔓 ثغرة بروتوكول: الرابط يستخدم HTTP غير مشفر، مما يجعله خطراً جداً لتداول البيانات.")
+        score += 30
         
     if any(trigger in path for trigger in ['vote', 'event', 'active', 'check', 'pague', 'auth']):
          reasons.append("🚨 نمط تفاعل مشبوه: الرابط يطلب إجراءً فورياً لتنفيذ هجمات التصيد.")
+         score += 20
 
     dangerous_tlds = ['.org', '.mobi', '.br', '.xyz', '.top', '.zip', '.info']
     if any(domain.endswith(tld) for tld in dangerous_tlds) and url.startswith("http://"):
         reasons.append(f"❗ تصنيف عالي الخطورة: الجمع بين نطاق {domain.split('.')[-1]} وبروتوكول غير مشفر يشير بقوة لنشاط تخريبي.")
+        score += 10
 
-    return list(set(reasons))
+    return list(set(reasons)), score
 
 # --- الواجهة الرئيسية (ثبات كامل) ---
 st.markdown("<h1>🛡️ Marjan Trace</h1>", unsafe_allow_html=True)
@@ -66,7 +83,7 @@ if st.button("تفعيل بروتوكول الكشف الذكي"):
         headers = {"x-apikey": API_KEY}
         url_id = base64.urlsafe_b64encode(target_url.encode()).decode().strip("=")
         
-        marjan_alerts = aggressive_marjan_logic(target_url)
+        marjan_alerts, risk_score = aggressive_marjan_logic(target_url)
         global_danger_count = 0
         
         with st.spinner("> جاري تنفيذ بروتوكولات التدقيق الجنائي..."):
@@ -80,8 +97,19 @@ if st.button("تفعيل بروتوكول الكشف الذكي"):
                 
                 if global_danger_count > 0:
                     marjan_alerts.append(f"📡 تأكيد استخباراتي: تم تصنيف الرابط كخطر بواسطة {global_danger_count} مختبر أمن سيبراني عالمي.")
+                    risk_score += 50
             except:
                 pass
+
+            # --- عرض رادار الخطورة ---
+            st.markdown('<div class="risk-radar">', unsafe_allow_html=True)
+            st.markdown(f"<p style='color:#D4AF37; margin-bottom:5px;'>مؤشر الخطورة الإجمالي</p>", unsafe_allow_html=True)
+            
+            display_score = min(risk_score, 100)
+            radar_color = "#ff4b4b" if display_score >= 70 else "#ffa500" if display_score >= 30 else "#28a745"
+            
+            st.markdown(f"<h1 style='color:{radar_color}; font-size:55px; margin:0;'>{display_score}%</h1>", unsafe_allow_html=True)
+            st.markdown('</div>', unsafe_allow_html=True)
 
             if marjan_alerts:
                 st.subheader("🕵️ نتائج التحليل العميق:")
