@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 # --- إعدادات الصفحة ---
 st.set_page_config(page_title="Marjan Trace", page_icon="🛡️", layout="centered")
 
-# --- التنسيق البصري المتطور مع درع الأمن والشبكة الرقمية ---
+# --- التنسيق البصري (الدرع، الشبكة الرقمية، والتوهج الذهبي) ---
 st.markdown("""
     <style>
     [data-testid="stAppViewContainer"] {
@@ -29,7 +29,6 @@ st.markdown("""
         text-align: center; 
         text-shadow: 0px 0px 20px rgba(212, 175, 55, 0.8) !important; 
         font-family: 'Courier New', Courier, monospace; 
-        margin-top: -30px;
     }
 
     .stButton>button { 
@@ -39,7 +38,6 @@ st.markdown("""
         font-weight: bold; 
         border-radius: 12px; 
         height: 3.8em; 
-        transition: 0.5s;
         box-shadow: 0px 0px 20px rgba(212, 175, 55, 0.3);
     }
 
@@ -54,14 +52,14 @@ st.markdown("""
     }
 
     .heuristic-danger { 
-        padding: 15px; 
+        padding: 12px; 
         border-radius: 10px; 
-        border: 2px solid #ff4b4b; 
-        background-color: rgba(100, 0, 0, 0.3); 
+        border-right: 5px solid #ff4b4b; 
+        background-color: rgba(255, 75, 75, 0.1); 
         color: #ff9999; 
         text-align: right; 
-        margin-bottom: 10px;
-        font-weight: bold;
+        margin-bottom: 8px;
+        font-size: 0.9em;
     }
     
     .footer { 
@@ -76,84 +74,91 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- محرك التحليل الاستباقي المطور (لحل مشكلة الروابط المخفية) ---
+# --- محرك التحليل الاستباقي العالي الدقة (Enhanced Heuristic Engine) ---
 def advanced_heuristic_analysis(url):
     alerts = []
     parsed_url = urlparse(url)
     domain = parsed_url.netloc.lower()
-    path = parsed_url.path.lower()
     
-    # 1. كشف المواقع المجانية (أكبر مصدر للروابط الخبيثة)
-    malicious_hosts = ['canva.site', 'wixsite.com', 'web.app', 'firebaseapp.com', 'github.io', '000webhost', 'pages.dev']
-    if any(host in domain for host in malicious_hosts):
-        alerts.append("⚠️ تحذير: الرابط مستضاف على خدمة مجانية؛ غالباً ما تُستخدم في حملات التصيد.")
+    # 1. كشف التمويه بالعلامات التجارية (Brand Impersonation)
+    brands = ['facebook', 'google', 'microsoft', 'instagram', 'apple', 'paypal', 'netflix', 'amazon', 'binance']
+    for brand in brands:
+        if brand in domain and domain != f"{brand}.com":
+            alerts.append(f"⚠️ محاولة انتحال: الرابط يحاول تقليد نطاق {brand} الرسمي.")
 
-    # 2. كشف الكلمات المريبة في المسار (Path) وليس الدومين فقط
-    danger_keywords = ['login', 'signin', 'verify', 'bank', 'secure', 'update', 'account', 'office', 'password']
-    if any(word in url.lower() for word in danger_keywords):
-        alerts.append("⚠️ تحذير: يحتوي الرابط على كلمات تدل على محاولة سرقة بيانات (Tactic: Phishing).")
+    # 2. كشف كثرة النطاقات الفرعية (Subdomain Tunneling)
+    if domain.count('.') > 3:
+        alerts.append("❗ بنية مريبة: الرابط يحتوي على نطاقات فرعية متعددة، أسلوب شائع لإخفاء الوجهة الحقيقية.")
 
-    # 3. فحص البروتوكول
+    # 3. كشف الكلمات المفتاحية الخطيرة (Deep Keyword Scan)
+    danger_pattern = r"(login|signin|verify|account|secure|update|billing|token|auth|wallet)"
+    if re.search(danger_pattern, url.lower()):
+        alerts.append("⚠️ صيد بيانات: الرابط يحتوي على كلمات مفتاحية تُستخدم في هجمات التصيد.")
+
+    # 4. كشف الاستضافات المجانية المريبة
+    suspicious_hosts = ['canva.site', 'wixsite.com', 'web.app', 'firebaseapp.com', 'github.io', 'pages.dev', '000webhostapp.com']
+    if any(host in domain for host in suspicious_hosts):
+        alerts.append(f"⚠️ استضافة مجانية: الموقع مستضاف على ({domain})، وهي بيئة خصبة للروابط المؤقتة الخبيثة.")
+
+    # 5. أمن البروتوكول
     if not url.startswith("https://"):
-        alerts.append("🚫 خطر: الرابط غير مشفر (HTTP)؛ أي بيانات تدخلها يمكن سرقتها بسهولة.")
-
-    # 4. كشف الروابط الطويلة جداً (Obfuscation)
-    if len(url) > 80:
-        alerts.append("⚠️ تحذير: الرابط طويل جداً؛ قد يكون محاولة لإخفاء النطاق الحقيقي.")
+        alerts.append("🚫 غير مشفر: الرابط يستخدم HTTP، بياناتك معرضة للاعتراض.")
 
     return alerts
 
 # --- الواجهة الرئيسية ---
 st.markdown("<h1>🛡️ Marjan Trace</h1>", unsafe_allow_html=True)
-st.markdown("<h3 style='text-align:center; color:#D4AF37;'>نظام التتبع الجنائي الذكي</h3>", unsafe_allow_html=True)
+st.markdown("<h3 style='text-align:center; color:#D4AF37;'>نظام التتبع الجنائي والتحليل الاستباقي</h3>", unsafe_allow_html=True)
 
-target_url = st.text_input("", placeholder="ضع الرابط هنا للفحص...")
+target_url = st.text_input("", placeholder="أدخل الرابط المراد تحليله جنائياً...")
 
-if st.button("تحليل الرابط الآن"):
+if st.button("تشغيل الفحص الرقمي"):
     if not target_url:
-        st.warning("⚠️ يرجى إدخال رابط أولاً")
+        st.warning("⚠️ يرجى تزويد الرابط للفحص")
     else:
-        # تنفيذ التحليل الاستباقي أولاً
         heuristic_results = advanced_heuristic_analysis(target_url)
         
         API_KEY = "22e03b88a0526e3d43b85556438c2d5895ccb0ef97771cff2471edab14cac85b"
         headers = {"x-apikey": API_KEY}
         url_id = base64.urlsafe_b64encode(target_url.encode()).decode().strip("=")
         
-        with st.spinner("> جاري التحليل المعمق..."):
+        with st.spinner("> جاري تنفيذ بروتوكولات الفحص..."):
             try:
                 response = requests.get(f"https://www.virustotal.com/api/v3/urls/{url_id}", headers=headers)
                 
-                # إذا كان الرابط جديداً، نطلبه للفحص
                 if response.status_code == 404:
                     requests.post("https://www.virustotal.com/api/v3/urls", headers=headers, data={"url": target_url})
-                    st.info("ℹ️ هذا الرابط جديد؛ تم إرساله للمختبرات العالمية، انتظر ثوانٍ...")
-                    time.sleep(5)
+                    time.sleep(6) # انتظار قصير للتحليل الأولي
                     response = requests.get(f"https://www.virustotal.com/api/v3/urls/{url_id}", headers=headers)
 
                 st.markdown("---")
 
-                # عرض تحذيرات "مرجان" الاستباقية بغض النظر عن نتيجة المختبرات
+                # عرض التحليل الاستباقي لـ "مرجان"
                 if heuristic_results:
-                    st.subheader("🕵️ نتائج فحص محرك مرجان الذكي:")
+                    st.subheader("🕵️ نتائج تحليل محرك مرجان:")
                     for alert in heuristic_results:
                         st.markdown(f'<div class="heuristic-danger">{alert}</div>', unsafe_allow_html=True)
                 
-                # عرض نتائج المختبرات العالمية
+                # عرض نتائج المختبرات العالمية ورابط السلوك
                 if response.status_code == 200:
-                    stats = response.json()['data']['attributes']['last_analysis_stats']
+                    data = response.json()['data']['attributes']
+                    stats = data.get('last_analysis_stats', {})
                     malicious = stats.get('malicious', 0)
+                    suspicious = stats.get('suspicious', 0)
                     
-                    if malicious > 0:
-                        st.error(f"🚨 المختبرات العالمية تؤكد: الرابط خبيث (تم رصده من قبل {malicious} مصدر)")
+                    if malicious > 0 or suspicious > 0:
+                        st.error(f"🚨 تنبيه أمني: تم تصنيف الرابط كخطر من قبل {malicious + suspicious} مختبر عالمي.")
                     elif heuristic_results:
-                        st.warning("⚠️ المختبرات العالمية لم ترصده بعد، ولكن 'مرجان' ينصح بالحذر الشديد بناءً على سلوك الرابط.")
+                        st.warning("🟡 تحذير: المختبرات العالمية تعتبره سليماً، لكن محرك مرجان يرصد سلوكاً مريباً جداً!")
                     else:
-                        st.success("✅ الرابط يبدو آمناً حالياً.")
-                
-                st.markdown(f'<div class="result-box">الرابط المفحوص: {target_url}</div>', unsafe_allow_html=True)
+                        st.success("✅ الرابط سليم بناءً على البيانات المتوفرة.")
+                    
+                    # إعادة إضافة رابط مراجعة السلوك التقني العميق
+                    st.info(f"🔗 [لمراجعة السلوك التقني العميق اضغط هنا](https://www.virustotal.com/gui/url/{url_id}/behavior)")
+                else:
+                    st.error("⚠️ فشل الاتصال بقواعد البيانات العالمية.")
 
             except Exception as e:
-                st.error("حدث خطأ في الاتصال بقاعدة البيانات العالمية.")
+                st.error("خطأ فني في محرك التحليل.")
 
-st.markdown(f'<div class="footer">Eng. Zaid Al-Janabi | Marjan Trace System v2.0</div>', unsafe_allow_html=True)
+st.markdown(f'<div class="footer">Eng. Zaid Al-Janabi | Marjan Trace System v2.5</div>', unsafe_allow_html=True)
