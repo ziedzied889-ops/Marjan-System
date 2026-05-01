@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 # --- إعدادات الصفحة ---
 st.set_page_config(page_title="Marjan Trace", page_icon="🛡️", layout="centered")
 
-# --- التنسيق البصري (الهوية البصرية المعتمدة) ---
+# --- التنسيق البصري (الهوية البصرية المعتمدة - ثابتة تماماً) ---
 st.markdown("""
     <style>
     [data-testid="stAppViewContainer"] {
@@ -30,29 +30,38 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- محرك التحليل الجنائي المتقدم (M.T Aggressive Core v5.6) ---
+# --- محرك التحليل الجنائي المتقدم (M.T Aggressive Core v5.8) ---
 def aggressive_marjan_logic(url):
     reasons = []
     domain = urlparse(url).netloc.lower()
     full_url = url.lower()
     
-    # 1. كشف التهديدات المباشرة
-    danger_keywords = [
-        'merit', 'king', 'giris', 'yap', 'bet', 'win', 'prize', 
-        'bonus', 'claim', 'verify', 'update', 'vave', 'login'
-    ]
+    # 1. كشف كلمات التهديد المباشرة (هندسة اجتماعية)
+    danger_keywords = ['merit', 'king', 'bet', 'win', 'prize', 'bonus', 'claim', 'verify', 'update', 'vave', 'login', 'crypto']
     if any(word in full_url for word in danger_keywords):
-        reasons.append("🚨 هندسة اجتماعية: تم رصد مصطلحات مخصصة للاستدراج في عمليات المراهنة أو التصيد المباشر.")
+        reasons.append("🚨 هندسة اجتماعية: تم رصد كلمات استدراج مخصصة لهجمات التصيد المباشر.")
 
-    # 2. كشف "خدعة التصويت والفعاليات" (التحديث الأخير)
+    # 2. كشف "الاحتيال المالي وتصفية الديون" (تحديث خاص لحالتك الجديدة)
+    # نكشف كلمات مثل 'divida' (دين بالبرتغالية) أو 'debt' أو 'zero' في سياق مريب
+    financial_scam_keywords = ['divida', 'debt', 'zero', 'pague', 'acordo', 'credit', 'loan']
+    if any(word in full_url for word in financial_scam_keywords) and ('.com' in domain or '.br' in domain):
+         reasons.append("🚨 احتيال مالي محتمل: الرابط يحتوي على نمط 'تصفية الديون' المشبوه الذي يستهدف استدراج الضحايا مالياً.")
+
+    # 3. كشف خدعة "التصويت والفعاليات"
     if 'vote' in full_url or ('event' in full_url and 'vote' in full_url):
-         reasons.append("🚨 هندسة اجتماعية: تم رصد نمط 'التصويت الاحتيالي'. المهاجم يستخدم 'vote' أو 'event' لسرقة الحسابات تحت غطاء المسابقات.")
+         reasons.append("🚨 نمط تصويت احتيالي: المهاجم يستخدم نظام 'التصويت' (Vote) كغطاء لسرقة البيانات.")
 
-    # 3. كشف انتحال الهوية
-    brands = ['bybit', 'binance', 'metamask', 'trust', 'paypal', 'netflix', 'apple', 'instagram', 'facebook']
+    # 4. كشف انتحال الهوية
+    brands = ['bybit', 'binance', 'metamask', 'trust', 'paypal', 'netflix', 'apple', 'instagram', 'facebook', 'whatsapp']
     for b in brands:
         if b in domain and domain != f"{b}.com":
-            reasons.append(f"⚠️ انتحال هوية: النطاق يستخدم اسم '{b}' بشكل غير رسمي لتضليل المستخدمين.")
+            reasons.append(f"⚠️ انتحال علامة تجارية: النطاق يحاول تقليد منصة '{b.capitalize()}' بشكل غير رسمي.")
+
+    # 5. تحليل بنية النطاق والبروتوكول
+    if url.startswith("http://"):
+        reasons.append("🔓 بروتوكول غير آمن: الرابط لا يدعم التشفير، مما يسهل عملية اعتراض البيانات.")
+    if len(domain) > 20 or domain.count('-') > 1:
+        reasons.append("❗ بنية مريبة: اسم النطاق طويل أو يحتوي على فواصل متعددة لإخفاء الهوية الحقيقية.")
 
     return list(set(reasons))
 
@@ -70,36 +79,30 @@ if st.button("تفعيل بروتوكول الكشف"):
         headers = {"x-apikey": API_KEY}
         url_id = base64.urlsafe_b64encode(target_url.encode()).decode().strip("=")
         
-        with st.spinner("> جاري تنفيذ بروتوكولات الفحص..."):
+        with st.spinner("> جاري تنفيذ بروتوكولات الفحص المتقدمة..."):
             st.markdown("---")
             
-            # عرض نتائج محرك مرجان دائماً
             if marjan_alerts:
                 st.subheader("🕵️ نتائج تحليل محرك مرجان الاستباقي:")
                 for alert in marjan_alerts:
                     st.markdown(f'<div class="heuristic-danger">{alert}</div>', unsafe_allow_html=True)
             else:
-                st.info("ℹ️ محرك مرجان: لم يتم رصد علامات خطر واضحة في بنية الرابط.")
+                st.info("ℹ️ محرك مرجان: لم يتم رصد مؤشرات خطر برمجية في بنية الرابط.")
 
-            # محاولة جلب النتائج العالمية مع رابط المراجعة
             try:
-                response = requests.get(f"https://www.virustotal.com/api/v3/urls/{url_id}", headers=headers, timeout=8)
+                response = requests.get(f"https://www.virustotal.com/api/v3/urls/{url_id}", headers=headers, timeout=10)
                 if response.status_code == 200:
-                    stats = response.json()['data']['attributes'].get('last_analysis_stats', {})
-                    malicious = stats.get('malicious', 0)
-                    
+                    malicious = response.json()['data']['attributes'].get('last_analysis_stats', {}).get('malicious', 0)
                     if malicious > 0:
-                        st.error(f"🚨 تأكيد خطر عالمي: تم تصنيف الرابط كخبيث من قبل {malicious} مختبر.")
+                        st.error(f"🚨 تأكيد خطر عالمي: الرابط خبيث بناءً على تقارير {malicious} مختبر دولي.")
                     else:
-                        st.success("✅ الرابط سليم بناءً على قواعد البيانات العالمية الحالية.")
+                        st.success("✅ الرابط سليم ظاهرياً في قواعد البيانات العالمية.")
                     
-                    # --- إرجاع رابط المراجعة هنا ---
                     st.info(f"🔗 [لمراجعة السلوك التقني العميق اضغط هنا](https://www.virustotal.com/gui/url/{url_id}/behavior)")
                 else:
-                    st.warning("⚠️ تنبيه: المختبرات العالمية مشغولة، اعتمد حالياً على 'كشف مرجان' أعلاه.")
-                    # إظهار الرابط حتى في حالة الانشغال لضمان وصولك للمعلومات
-                    st.info(f"🔗 [يمكنك محاولة مراجعة السلوك يدوياً من هنا](https://www.virustotal.com/gui/url/{url_id}/behavior)")
-            except Exception:
-                st.warning("⚠️ تعذر الاتصال بالمختبرات الخارجية. تم الاكتفاء بالتحليل الذكي لمرجان.")
+                    st.warning("⚠️ قواعد البيانات العالمية مشغولة؛ تم الاعتماد على تحليل مرجان الذكي.")
+                    st.info(f"🔗 [يمكنك المراجعة اليدوية من هنا](https://www.virustotal.com/gui/url/{url_id}/behavior)")
+            except:
+                st.warning("⚠️ فشل الاتصال الخارجي؛ تم الاكتفاء بنتائج الفحص الداخلي.")
 
-st.markdown(f'<div class="footer">Eng. Zaid Al-Janabi | Marjan Trace v5.6</div>', unsafe_allow_html=True)
+st.markdown(f'<div class="footer">Eng. Zaid Al-Janabi | Marjan Trace v5.8</div>', unsafe_allow_html=True)
