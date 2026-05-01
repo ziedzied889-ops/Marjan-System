@@ -36,8 +36,7 @@ def aggressive_marjan_logic(url):
     domain = urlparse(url).netloc.lower()
     full_url = url.lower()
     
-    # 1. كشف كلمات الاحتيال والمراهنات (بما فيها الكلمات التركية مثل giris/yap)
-    # الرابط في صورتك يحتوي على 'meritking' و 'girisyap'
+    # 1. كشف كلمات الاحتيال والمراهنات
     danger_keywords = [
         'merit', 'king', 'giris', 'yap', 'bet', 'win', 'prize', 
         'bonus', 'claim', 'verify', 'update', 'login', 'account'
@@ -57,9 +56,9 @@ def aggressive_marjan_logic(url):
 
     return reasons
 
-# --- الواجهة ---
+# --- الواجهة (التعديل المطلوب هنا) ---
 st.markdown("<h1>🛡️ Marjan Trace</h1>", unsafe_allow_html=True)
-st.markdown("<h3 style='text-align:center; color:#D4AF37;'>نظام الردع الجنائي والذكاء الاصطناعي</h3>", unsafe_allow_html=True)
+st.markdown("<h3 style='text-align:center; color:#D4AF37;'>نظام التحليل الجنائي الرقمي</h3>", unsafe_allow_html=True)
 
 target_url = st.text_input("", placeholder="أدخل الرابط المشبوه للتحليل...")
 
@@ -92,7 +91,6 @@ if st.button("تفعيل بروتوكول الكشف"):
                     else:
                         st.success("✅ الرابط سليم بناءً على التحليل الرقمي الحالي.")
                     
-                    # إعادة مراجعة السلوك (مطلبك الأول)
                     st.info(f"🔗 [لمراجعة السلوك التقني العميق اضغط هنا](https://www.virustotal.com/gui/url/{url_id}/behavior)")
                 else:
                     if marjan_alerts:
