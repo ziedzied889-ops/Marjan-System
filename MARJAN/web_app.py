@@ -4,151 +4,163 @@ import math
 from urllib.parse import urlparse
 
 # --- إعدادات النظام ---
-st.set_page_config(page_title="Marjan Trace v5.5", page_icon="🛡️", layout="wide")
+st.set_page_config(page_title="Marjan Trace v6.5", page_icon="🛡️", layout="wide")
 
-# --- محرك التحليل الجنائي المتقدم ---
-def deep_analyze_url(url):
-    domain = urlparse(url).netloc.lower()
-    path = urlparse(url).path.lower()
-    entropy = 0
-    if domain:
-        probs = [float(domain.count(c)) / len(domain) for c in dict.fromkeys(list(domain))]
-        entropy = - sum([p * math.log(p) / math.log(2.0) for p in probs])
-
+# --- محرك التحليل الذكي ---
+def analyze_threat(url):
     findings = []
-    impacts = []
+    summary_for_user = "الرابط لا يظهر نشاطاً عدائياً مباشراً حتى الآن."
+    danger_level = "LOW"
     
-    # 1. تحليل السلوك المخصص (بدل الكليشة الثابتة)
-    if any(x in url for x in ['login', 'verify', 'sign-in', 'secure', 'account']):
-        findings.append("🔍 رصد محاولة 'هندسة اجتماعية': الرابط يحاكي صفحات تسجيل دخول رسمية.")
-        impacts.append("⚠️ سرقة بيانات الاعتماد (Credential Theft).")
-        
-    if any(x in url for x in ['bank', 'crypto', 'wallet', 'update-card', 'billing']):
-        findings.append("💰 استهداف مالي: تم رصد كلمات دلالية مرتبطة بأنظمة الدفع والبنوك.")
-        impacts.append("⚠️ اختراق الحسابات البنكية أو محافظ الكريبتو.")
+    if not url: return findings, summary_for_user, danger_level
 
-    if entropy > 3.4:
-        findings.append(f"🤖 تحليل DGA: اسم النطاق عشوائي جداً ({round(entropy,2)})، مما يشير لروابط مولدة برمجياً للهجمات.")
-        impacts.append("⚠️ اتصال مع سيرفرات قيادة وسيطرة (C2 Server).")
+    # منطق التحليل المطور
+    if any(x in url.lower() for x in ['bank', 'secure', 'login', 'pay', 'crypto', 'wallet']):
+        findings.append("محاولة هندسة اجتماعية (Phishing Attempt)")
+        summary_for_user = "هذا الرابط مصمم لاصطياد الضحايا عبر محاكاة صفحات تسجيل دخول بنكية أو مالية لسرقة الأموال."
+        danger_level = "HIGH"
+    elif url.count('.') > 3 or len(url) > 80:
+        findings.append("تمويه النطاق (URL Masking)")
+        summary_for_user = "يستخدم هذا الرابط تقنيات التمويه لإخفاء وجهته الحقيقية، مما يرجح وجود برمجيات خبيثة."
+        danger_level = "MEDIUM"
+    
+    return findings, summary_for_user, danger_level
 
-    if domain.count('.') > 2:
-        findings.append("🎭 تمويه الهوية: استخدام نطاقات فرعية متعددة لإخفاء النطاق الأصلي.")
-        impacts.append("⚠️ تخطي فلاتر الحماية التقليدية.")
-
-    if any(ext in domain for ext in ['.xyz', '.top', '.online', '.link', '.pw', '.tk']):
-        findings.append("🚩 نطاق منخفض الموثوقية: استخدام امتداد رخيص يُفضل من قبل المهاجمين لسهولة التخلص منه.")
-        impacts.append("⚠️ احتمالية عالية لوجود برمجيات خبيثة (Malware Distribution).")
-
-    return findings, impacts, round(entropy, 2)
-
-# --- كود الخلفية والتنسيق (حل مشكلة الخلفية السوداء) ---
+# --- حقن الخلفية السيبرانية الشاملة (Full Page Background) ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Orbitron:wght@500;900&display=swap');
     
+    /* 1. تلوين الخلفية الكلية للمتصفح (المناطق التي كانت سوداء) */
     .stApp {
-        background: #05070a !important;
+        background: radial-gradient(circle at center, #0d1117 0%, #05070a 100%) !important;
     }
 
-    /* الخلفية السيبرانية الذهبية المتفاعلة */
-    #marjan-bg {
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        z-index: -1; opacity: 0.35;
+    /* حاوية الخلفية المتحركة */
+    #marjan-cyber-canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: -1;
+        opacity: 0.4;
+        pointer-events: none;
     }
 
-    .rtl-container { direction: rtl; text-align: right; font-family: 'Cairo', sans-serif; }
-    .sys-title { 
-        font-family: 'Orbitron', sans-serif; color: #D4AF37 !important; 
-        text-align: center; font-size: 3.5em; font-weight: 900; margin-bottom: 0px;
-        text-shadow: 0 0 20px rgba(212, 175, 85, 0.5);
+    .main-title {
+        font-family: 'Orbitron', sans-serif;
+        color: #D4AF37;
+        text-align: center;
+        font-size: 4rem;
+        letter-spacing: 8px;
+        margin-top: 20px;
+        text-shadow: 0 0 25px rgba(212,175,55,0.6);
     }
-    
-    .metric-card { 
-        background: rgba(13, 17, 23, 0.9) !important; border: 1px solid rgba(212, 175, 85, 0.3) !important; 
-        border-top: 4px solid #D4AF37 !important; padding: 20px; border-radius: 12px; text-align: center;
+
+    /* تنسيق البطاقات لتكون شفافة (Glassmorphism) وتظهر الخلفية من ورائها */
+    .report-box {
+        background: rgba(13, 17, 23, 0.85) !important;
+        border: 1px solid rgba(212, 175, 85, 0.3) !important;
+        border-radius: 20px;
+        padding: 30px;
         backdrop-filter: blur(10px);
     }
 
-    .report-card {
-        background: rgba(10, 25, 47, 0.8) !important; border-radius: 15px; padding: 25px;
-        border: 1px solid rgba(212, 175, 85, 0.1); border-right: 6px solid #D4AF37;
-        backdrop-filter: blur(10px); margin-top: 15px;
+    .sandbox-preview {
+        border: 2px solid #D4AF37;
+        border-radius: 20px;
+        height: 450px;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(15px);
+        box-shadow: inset 0 0 50px rgba(212, 175, 85, 0.1);
     }
 
     .stButton>button {
         background: linear-gradient(90deg, #D4AF37 0%, #b8860b 100%) !important;
-        color: black !important; font-weight: bold; width: 100%; border-radius: 10px;
+        color: black !important;
+        font-weight: bold;
+        border-radius: 12px;
+        height: 3.5em;
+        border: none;
+        transition: 0.3s;
+    }
+    
+    .stButton>button:hover {
+        transform: scale(1.02);
+        box-shadow: 0 0 20px rgba(212, 175, 85, 0.4);
     }
     </style>
 
-    <div id="marjan-bg"></div>
+    <div id="marjan-cyber-canvas"></div>
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
     <script>
-        particlesJS('marjan-bg', {
+        particlesJS('marjan-cyber-canvas', {
             "particles": {
-                "number": { "value": 120 },
+                "number": { "value": 150 },
                 "color": { "value": "#D4AF37" },
-                "line_linked": { "enable": true, "color": "#D4AF37", "opacity": 0.2 },
-                "move": { "enable": true, "speed": 1.5 }
-            }
+                "shape": { "type": "circle" },
+                "opacity": { "value": 0.5 },
+                "size": { "value": 2 },
+                "line_linked": { "enable": true, "distance": 150, "color": "#D4AF37", "opacity": 0.2, "width": 1 },
+                "move": { "enable": true, "speed": 2 }
+            },
+            "interactivity": { "events": { "onhover": { "enable": true, "mode": "grab" } } }
         });
     </script>
     """, unsafe_allow_html=True)
 
-# --- الواجهة البرمجية ---
-st.markdown("<h1 class='sys-title'>MARJAN TRACE v5.5</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align:center; color:white; font-family:Cairo;'>نظام التحقيق الجنائي المتقدم - جامعة المعارف</p>", unsafe_allow_html=True)
+# --- واجهة Marjan Trace ---
+st.markdown("<h1 class='main-title'>MARJAN TRACE</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center; color:#ffffff; font-family:Cairo; font-size:1.2em;'>النظام الذكي للتحليل الجنائي الرقمي</p>", unsafe_allow_html=True)
 
-url_input = st.text_input("أدخل الرابط المراد تحليله:", placeholder="https://example.com...")
+st.markdown("<br>", unsafe_allow_html=True)
+url_to_scan = st.text_input("أدخل الرابط المراد فحصه / Target URL", placeholder="https://example.com...")
 
-if st.button("بدء بروتوكول الفحص العميق"):
-    if url_input:
-        findings, impacts, entropy_val = deep_analyze_url(url_input)
+if st.button("بدء الفحص الجنائي"):
+    if url_to_scan:
+        findings, user_info, risk = analyze_threat(url_to_scan)
         
-        is_safe = len(findings) == 0
-        status_text = "آمن ظاهرياً" if is_safe else "مشبوه / خطر"
-        status_color = "#2ea043" if is_safe else "#ff4b4b"
-
-        # عرض المؤشرات
-        col1, col2, col3 = st.columns(3)
-        with col1: st.markdown(f'<div class="metric-card"><h6>الحالة الجنائية</h6><h3 style="color:{status_color}">{status_text}</h3></div>', unsafe_allow_html=True)
-        with col2: st.markdown(f'<div class="metric-card"><h6>الأدلة المكتشفة</h6><h3>{len(findings)}</h3></div>', unsafe_allow_html=True)
-        with col3: st.markdown(f'<div class="metric-card"><h6>معامل العشوائية</h6><h3>{entropy_val}</h3></div>', unsafe_allow_html=True)
-
-        col_left, col_right = st.columns([1.5, 1])
+        col_res, col_visual = st.columns([1.3, 1])
         
-        with col_left:
-            st.markdown('<div class="report-card rtl-container">', unsafe_allow_html=True)
-            st.markdown("<h4 style='color:#D4AF37;'>🔍 تقرير التحليل الجنائي المخصص</h4>", unsafe_allow_html=True)
-            
-            if not is_safe:
-                st.markdown("**📌 الأدلة المكتشفة في هذا الرابط:**")
-                for f in findings:
-                    st.markdown(f"<p style='color:white; font-size:0.9em;'>• {f}</p>", unsafe_allow_html=True)
-                
-                st.markdown("<hr style='opacity:0.1'>", unsafe_allow_html=True)
-                st.markdown("**⚠️ الأضرار المتوقعة (Expected Impacts):**")
-                for i in impacts:
-                    st.markdown(f"<p style='color:#ff4b4b; font-weight:bold;'>• {i}</p>", unsafe_allow_html=True)
-            else:
-                st.markdown("<p style='color:#2ea043;'>✅ لم يتم العثور على أنماط هجومية معروفة في بنية الرابط.</p>", unsafe_allow_html=True)
-            
+        with col_res:
             st.markdown(f"""
-                <div style="background:rgba(212,175,55,0.1); padding:15px; border-radius:10px; border:1px solid #D4AF37; margin-top:20px;">
-                    <h5 style="color:#D4AF37;">💡 توصية المهندس زيد (Zaid's Advisory):</h5>
-                    <p>{"هذا الرابط يظهر سلوكاً عدائياً، ننصح بحجبه فوراً." if not is_safe else "الرابط لا يحتوي على مؤشرات خطر واضحة، ولكن توخى الحذر دائماً."}</p>
+            <div class='report-box' style='direction: rtl;'>
+                <h3 style='color:#D4AF37; font-family:Cairo;'>🔍 تقرير فحص النطاق</h3>
+                <p><b>الرابط المكتشف:</b> <code style='color:#ff4b4b;'>{url_to_scan}</code></p>
+                <hr style='opacity:0.2;'>
+                <p style='font-size:1.1em;'><b>الأدلة الجرمية المكتشفة:</b></p>
+                <ul style='color:#ccc;'>
+                    {"<li>لم يتم رصد أنماط خبيثة معروفة.</li>" if not findings else "".join([f"<li>{f}</li>" for f in findings])}
+                </ul>
+                <div style='background:rgba(212,175,55,0.1); padding:20px; border-radius:15px; border-right:5px solid #D4AF37; margin-top:25px;'>
+                    <h5 style='color:#D4AF37; font-family:Orbitron; margin:0;'>(Marjan Trace Advisory):</h5>
+                    <p style='margin-top:10px;'>{"⚠️ تنبيه: الرابط يمثل خطورة عالية، يُنصح بحجبه فوراً." if risk != "LOW" else "✅ الرابط يبدو آمناً للاستخدام العادي."}</p>
                 </div>
-            """, unsafe_allow_html=True)
-            st.markdown('</div>', unsafe_allow_html=True)
-
-        with col_right:
-            st.markdown("<h4 style='color:#D4AF37; text-align:center;'>📸 معاينة Sandbox</h4>", unsafe_allow_html=True)
-            icon = "🛡️" if is_safe else "🚫"
-            st.markdown(f"""
-                <div style="border:2px solid #D4AF37; border-radius:15px; height:350px; display:flex; flex-direction:column; align-items:center; justify-content:center; background:rgba(0,0,0,0.5);">
-                    <span style="font-size:5em;">{icon}</span>
-                    <p style="color:#888; margin-top:20px;">المعاينة محجوبة حمايةً لجهازك</p>
-                </div>
+            </div>
             """, unsafe_allow_html=True)
 
-st.markdown("<br><br><p style='text-align:center; color:#D4AF37; font-family:Orbitron; font-size:0.8em;'>Developed by: Eng. Zaid Al-Janabi | University of Al-Maarif | 2026</p>", unsafe_allow_html=True)
+        with col_visual:
+            st.markdown("<h3 style='color:#D4AF37; text-align:center; font-family:Cairo;'>🛡️ محاكاة الضرر (Sandbox)</h3>", unsafe_allow_html=True)
+            status_icon = "🚫" if risk == "HIGH" else "⚠️" if risk == "MEDIUM" else "🛡️"
+            status_color = "#ff4b4b" if risk == "HIGH" else "#D4AF37" if risk == "MEDIUM" else "#2ea043"
+            
+            st.markdown(f"""
+            <div class='sandbox-preview'>
+                <div style='font-size: 5rem;'>{status_icon}</div>
+                <h3 style='color:{status_color}; font-family:Cairo;'>تحليل المخاطر</h3>
+                <div style='padding:0 20px;'>
+                    <p style='color:#eee; font-family:Cairo; font-size:1.1rem;'>{user_info}</p>
+                </div>
+                <div style='margin-top:20px; background:rgba(255,255,255,0.05); padding:10px 20px; border-radius:30px;'>
+                    <small style='color:#888;'>Isolated Environment Active</small>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+st.markdown("<br><br><br>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center; color:#D4AF37; font-family:Orbitron; opacity:0.6;'>DEVELOPED BY: ENG. ZAID AL-JANABI | 2026</p>", unsafe_allow_html=True)
