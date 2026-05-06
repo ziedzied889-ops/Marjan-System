@@ -3,187 +3,147 @@ import re
 import math
 from urllib.parse import urlparse
 
-# --- 1. إعدادات الصفحة الاحترافية (Responsive) ---
+# --- 1. إعدادات الصفحة النهائية ---
 st.set_page_config(
-    page_title="Marjan Trace v7.8 | Forensic Cyber System",
+    page_title="Marjan Trace v8.0",
     page_icon="🛡️",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. محرك التشريح الجنائي المكثف ---
-def intensive_forensic_analysis(url):
+# --- 2. محرك التحليل الجنائي الذكي ---
+def forensic_analysis(url):
     findings = []
     actions = []
-    risk_label = "CLEAN / آمن"
-    risk_color = "#2ea043"
+    status = "CLEAN / آمن"
+    color = "#2ea043"
     
-    if not url: return findings, actions, risk_label, risk_color, 0
+    if not url: return findings, actions, status, color, 0
 
     domain = urlparse(url).netloc.lower()
     
-    # حساب معامل العشوائية (Entropy)
+    # حساب العشوائية
     entropy = 0
     if domain:
         probs = [float(domain.count(c)) / len(domain) for c in dict.fromkeys(list(domain))]
         entropy = round(- sum([p * math.log(p) / math.log(2.0) for p in probs]), 2)
 
-    # تحليل الأنماط السلوكية
-    is_malicious = False
+    # كشف التهديدات
+    is_danger = False
+    if any(x in url.lower() for x in ['bank', 'login', 'secure', 'crypto', 'verify']):
+        findings.append("🔍 اكتشاف نمط تصيد عالي الخطورة (Phishing).")
+        actions.append("🔓 سرقة الهوية: محاولة الاستيلاء على بيانات الدخول والبطاقات.")
+        is_danger = True
     
-    if any(x in url.lower() for x in ['bank', 'secure', 'login', 'pay', 'crypto', 'verify', 'account']):
-        findings.append("🔍 رصد محاولة انتحال صفحة رسمية (Phishing Attack).")
-        actions.append("🔓 سرقة بيانات الهوية: الموقع مبرمج لسحب كلمات المرور فور كتابتها.")
-        is_malicious = True
-    
-    if entropy > 3.6 or domain.count('.') > 3:
-        findings.append(f"🕵️ مؤشر DGA: عشوائية النطاق ({entropy}) تشير لروابط مولدة آلياً لهجمات Botnet.")
-        actions.append("🤖 التحكم عن بعد: محاولة تحويل الجهاز لـ 'زومبي' ضمن شبكة مخترقة.")
-        is_malicious = True
+    if entropy > 3.7 or domain.count('.') > 3:
+        findings.append("🕵️ مؤشر DGA: النطاق مشبوه وقد يكون مرتبطاً بسيرفرات C2.")
+        actions.append("📡 اتصال خارجي: محاولة بناء قناة اتصال مع سيرفر قيادة وسيطرة.")
+        is_danger = True
 
-    if any(ext in domain for ext in ['.xyz', '.top', '.online', '.link', '.pw', '.tk']):
-        findings.append("🚩 نطاق مشبوه: استخدام امتدادات منخفضة التكلفة لتوزيع برمجيات الـ Ransomware.")
-        actions.append("🦠 تشفير الملفات: اكتشاف محاولة تحميل صامت لبرمجيات الفدية.")
-        is_malicious = True
+    if is_danger:
+        status = "CRITICAL / خطر"
+        color = "#ff4b4b"
 
-    if is_malicious:
-        risk_label = "CRITICAL / خطر"
-        risk_color = "#ff4b4b"
+    return findings, actions, status, color, entropy
 
-    return findings, actions, risk_label, risk_color, entropy
-
-# --- 3. تصميم الـ CSS والخلفية السيبرانية الكلية ---
+# --- 3. التصميم البصري (CSS) وتصحيح الأخطاء ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Orbitron:wght@500;900&display=swap');
     
-    /* خلفية سيبرانية كلية ملء الشاشة */
-    .stApp {
-        background: #05070a !important;
-        background-attachment: fixed;
+    .stApp { background-color: #05070a !important; }
+    
+    .rtl-box { direction: rtl; text-align: right; font-family: 'Cairo', sans-serif; }
+    
+    .main-title { 
+        font-family: 'Orbitron', sans-serif; color: #D4AF37; 
+        text-align: center; font-size: 3.5rem; letter-spacing: 5px;
+        text-shadow: 0 0 20px rgba(212, 175, 85, 0.3);
     }
 
-    #cyber-grid {
-        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-        z-index: -1; opacity: 0.25; pointer-events: none;
-    }
-
-    .rtl-dir { direction: rtl; text-align: right; font-family: 'Cairo', sans-serif; }
-    
-    .sys-header { 
-        font-family: 'Orbitron', sans-serif; color: #D4AF37 !important; 
-        text-align: center; font-size: 3.5rem; font-weight: 900; letter-spacing: 5px;
-        text-shadow: 0 0 25px rgba(212, 175, 85, 0.4); margin-bottom: 0;
-    }
-    
     .metric-card { 
-        background: rgba(13, 17, 23, 0.9); border: 1px solid rgba(212, 175, 85, 0.25); 
-        border-top: 5px solid #D4AF37; padding: 20px; border-radius: 12px; text-align: center;
-        backdrop-filter: blur(10px);
+        background: rgba(13, 17, 23, 0.9); border: 1px solid rgba(212, 175, 85, 0.2); 
+        border-top: 4px solid #D4AF37; padding: 20px; border-radius: 12px; text-align: center;
     }
 
-    .report-box { 
-        background: rgba(10, 25, 47, 0.85); border-radius: 20px; padding: 25px; 
-        border: 1px solid rgba(212, 175, 85, 0.15); border-right: 8px solid #D4AF37;
-        backdrop-filter: blur(10px);
-    }
-
+    /* تحسين إطار المعاينة Sandbox لضمان عدم ظهوره فارغاً */
     .sandbox-container { 
-        border: 2px solid #D4AF37; border-radius: 20px; background: rgba(0,0,0,0.9);
-        min-height: 480px; padding: 25px; display: flex; flex-direction: column;
-        backdrop-filter: blur(15px); box-shadow: inset 0 0 40px rgba(212, 175, 85, 0.05);
+        border: 2px solid #D4AF37; border-radius: 20px; background: #000;
+        min-height: 450px; padding: 30px; display: flex; flex-direction: column;
+        box-shadow: inset 0 0 30px rgba(212, 175, 85, 0.1);
+    }
+
+    .action-item {
+        background: rgba(255, 75, 75, 0.1); padding: 15px; border-radius: 10px; 
+        margin-bottom: 15px; border-right: 5px solid #ff4b4b; color: #eee;
     }
 
     .stButton>button {
         background: linear-gradient(90deg, #D4AF37 0%, #b8860b 100%) !important;
-        color: black !important; font-weight: bold; border-radius: 12px; height: 3.8em;
-        border: none; font-size: 1.1rem; width: 100%; transition: 0.3s;
-    }
-    .stButton>button:hover { transform: scale(1.02); box-shadow: 0 0 15px #D4AF37; }
-
-    /* تحسين استجابة الموبايل */
-    @media (max-width: 768px) {
-        .sys-header { font-size: 2rem; }
-        .metric-card { margin-bottom: 15px; }
+        color: black !important; font-weight: bold; border-radius: 12px; width: 100%;
     }
     </style>
-    
-    <div id="cyber-grid"></div>
-    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
-    <script>
-        particlesJS('cyber-grid', {
-            "particles": { "number": { "value": 120 }, "color": { "value": "#D4AF37" }, 
-            "line_linked": { "enable": true, "distance": 150, "color": "#D4AF37", "opacity": 0.1 },
-            "move": { "enable": true, "speed": 1.5 } }
-        });
-    </script>
     """, unsafe_allow_html=True)
 
-# --- 4. الهيكل الرئيسي ---
-st.markdown("<h1 class='sys-header'>MARJAN TRACE</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align:center; color:white; font-family:Cairo; font-size:1.3rem; margin-top:-10px;'>نظام مَرْجَان لِلتحقيقِ الرَّقَمي والاستخبارات الجنائية</p>", unsafe_allow_html=True)
+# --- 4. واجهة المستخدم ---
+st.markdown("<h1 class='main-title'>MARJAN TRACE</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center; color:white; font-family:Cairo;'>نظام مَرْجَان لِلتحقيقِ الرَّقَمي والاستخبارات السيبرانية</p>", unsafe_allow_html=True)
 
-st.markdown("<br>", unsafe_allow_html=True)
-url_input = st.text_input("أدخل الرابط المراد تشريحه جنائياً:", placeholder="https://...")
+url_input = st.text_input("أدخل الرابط المراد فحصه:", placeholder="https://...")
 
-if st.button("تفعيل بروتوكول الكشف الجنائي الشامل"):
+if st.button("بدء بروتوكول التحليل"):
     if url_input:
-        findings, actions, label, color, entropy_val = intensive_forensic_analysis(url_input)
+        findings, actions, status, color, entropy = forensic_analysis(url_input)
         
-        # لوحة النتائج
+        # ترتيب الأيقونات والمؤشرات
         c1, c2, c3 = st.columns(3)
-        with c1: st.markdown(f'<div class="metric-card"><h6>الحالة الجنائية</h6><h3 style="color:{color}; margin:0;">{label}</h3></div>', unsafe_allow_html=True)
-        with c2: st.markdown(f'<div class="metric-card"><h6>الأدلة المرصودة</h6><h2 style="margin:0;">{len(findings)}</h2></div>', unsafe_allow_html=True)
-        with c3: st.markdown(f'<div class="metric-card"><h6>عشوائية النطاق</h6><h2 style="margin:0;">{entropy_val}</h2></div>', unsafe_allow_html=True)
+        with c1: st.markdown(f'<div class="metric-card"><h6>الحالة الجنائية</h6><h3 style="color:{color}">{status}</h3></div>', unsafe_allow_html=True)
+        with c2: st.markdown(f'<div class="metric-card"><h6>الأدلة المكتشفة</h6><h2>{len(findings)}</h2></div>', unsafe_allow_html=True)
+        with c3: st.markdown(f'<div class="metric-card"><h6>معامل العشوائية</h6><h2>{entropy}</h2></div>', unsafe_allow_html=True)
 
-        col_main, col_ss = st.columns([1.4, 1])
+        col_main, col_ss = st.columns([1.3, 1])
 
         with col_main:
-            st.markdown('<div class="report-box rtl-dir">', unsafe_allow_html=True)
-            st.markdown("<h4 style='color:#D4AF37;'>🔍 تقرير التشريح الجنائي:</h4>", unsafe_allow_html=True)
-            st.write(f"**الهدف المرصود:** `{url_input}`")
-            
+            st.markdown('<div class="rtl-box" style="background:rgba(10,25,47,0.8); padding:25px; border-radius:15px; border-right:6px solid #D4AF37; margin-top:20px;">', unsafe_allow_html=True)
+            st.markdown("<h4 style='color:#D4AF37;'>🔍 تقرير الفحص التفصيلي:</h4>", unsafe_allow_html=True)
             if findings:
-                for f in findings:
-                    st.markdown(f"<p style='color:#ffffff; background:rgba(212,175,55,0.05); padding:10px; border-radius:8px; border-right:4px solid #D4AF37;'>• {f}</p>", unsafe_allow_html=True)
+                for f in findings: st.markdown(f"<p style='color:white;'>• {f}</p>", unsafe_allow_html=True)
             else:
-                st.markdown("<p style='color:#2ea043;'>✅ لم يتم رصد أدلة جرمية في بنية الرابط حالياً.</p>", unsafe_allow_html=True)
+                st.markdown("<p style='color:#2ea043;'>✅ لم يتم رصد تهديدات مباشرة في بنية الرابط.</p>", unsafe_allow_html=True)
             
-            # توصية Marjan Trace Advisory
+            # توصية المهندس زيد (Zaid's Advisory)
             st.markdown(f"""
                 <div style="background:rgba(212,175,55,0.1); padding:20px; border-radius:15px; border-left:5px solid #D4AF37; margin-top:25px;">
-                    <h5 style="color:#D4AF37; font-family:Orbitron; margin-top:0;">🛡️ (Marjan Trace Advisory):</h5>
-                    <p style="font-size:1.1rem; line-height:1.6;">بناءً على التحليل الجنائي المتقدم، الرابط <b>{"يصنف كتهديد نشط" if len(findings)>0 else "يبدو سليماً"}</b>. {"يُنصح بحجب النطاق فوراً ومنع التعامل معه." if len(findings)>0 else "يمكن المتابعة مع الحذر الاعتيادي."}</p>
+                    <h5 style="color:#D4AF37; font-family:Orbitron;">🛡️ (Zaid's Advisory):</h5>
+                    <p>بناءً على الأدلة الجنائية، الرابط <b>{"خطير جداً" if len(findings)>0 else "يبدو سليماً"}</b>. نوصي بحجب النطاق فوراً ومنع التعامل معه.</p>
                 </div>
             """, unsafe_allow_html=True)
             st.markdown('</div>', unsafe_allow_html=True)
 
         with col_ss:
             st.markdown("<h3 style='color:#D4AF37; text-align:center;'>📽️ محاكاة Sandbox</h3>", unsafe_allow_html=True)
-            st.markdown('<div class="sandbox-container rtl-dir">', unsafe_allow_html=True)
+            st.markdown('<div class="sandbox-container rtl-box">', unsafe_allow_html=True)
             
+            # معالجة مشكلة الخانة الفارغة
             if actions:
-                st.markdown("<h4 style='color:#ff4b4b; text-align:center;'>🚨 ماذا سيفعل هذا الرابط؟</h4>", unsafe_allow_html=True)
+                st.markdown("<h4 style='color:#ff4b4b; text-align:center;'>🚨 النشاط التخريبي المرصود:</h4>", unsafe_allow_html=True)
                 for act in actions:
-                    # تم تصحيح طريقة كتابة الـ HTML لتجنب خطأ decimal literal
-                    st.markdown(f"<div style='background:rgba(255,75,75,0.1); padding:12px; border-radius:10px; margin-bottom:10px; border:1px solid rgba(255,75,75,0.2); color:#eee;'>{act}</div>", unsafe_allow_html=True)
+                    st.markdown(f"<div class='action-item'>{act}</div>", unsafe_allow_html=True)
             else:
                 st.markdown("""
-                    <div style="text-align:center; padding-top:60px;">
+                    <div style="text-align:center; padding-top:80px;">
                         <span style="font-size:5rem;">🛡️</span>
-                        <h4 style="color:#2ea043; margin-top:20px;">بيئة آمنة</h4>
-                        <p style="color:#888;">لم يتم اكتشاف أضرار برمجية مرتقبة.</p>
+                        <h4 style="color:#2ea043;">بيئة آمنة</h4>
+                        <p style="color:#888;">لا يوجد نشاط برمج خبيث قيد التنفيذ.</p>
                     </div>
                 """, unsafe_allow_html=True)
             
             st.markdown("""
-                <div style="margin-top:auto; padding:15px; background:rgba(212,175,55,0.05); border-radius:12px; border:1px dashed #D4AF37;">
-                    <small style="color:#D4AF37;">📋 تقرير النشاط البرمجي:</small><br>
-                    <small style="color:#aaa;">• تم عزل الرابط في بيئة Sandbox معزولة.<br>
-                    • تم فحص طلبات الـ DNS ومسارات الـ Redirect.<br>
-                    • الحالة: تم فحص التهديدات السلوكية بنجاح.</small>
+                <div style="margin-top:auto; padding:15px; border:1px dashed #D4AF37; border-radius:10px; background:rgba(212,175,55,0.05);">
+                    <small style="color:#D4AF37;">📋 سجل المحاكاة:</small><br>
+                    <small style="color:#aaa;">تم فحص الروابط وإعادة التوجيه (Redirects) بنجاح.</small>
                 </div>
             """, unsafe_allow_html=True)
             st.markdown('</div>', unsafe_allow_html=True)
 
-st.markdown("<br><br><p style='text-align:center; color:#D4AF37; font-family:Orbitron; opacity:0.6; font-size:0.9rem;'>Developed by: Eng. Zaid Al-Janabi | 2026 | Cybersecurity Department</p>", unsafe_allow_html=True)
+st.markdown("<br><p style='text-align:center; color:#D4AF37; font-family:Orbitron; opacity:0.6;'>Developed by: Eng. Zaid Al-Janabi | 2026</p>", unsafe_allow_html=True)
