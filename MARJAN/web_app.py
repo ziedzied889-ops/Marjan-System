@@ -1,10 +1,9 @@
 import streamlit as st
 import math
-import base64
 from urllib.parse import urlparse
 
 # --- 1. إعدادات النظام ---
-st.set_page_config(page_title="Marjan Trace v14.0", layout="wide")
+st.set_page_config(page_title="Marjan Trace v15.0", layout="wide")
 
 # --- 2. محرك التحليل الجنائي ---
 def forensic_engine(url):
@@ -61,7 +60,7 @@ st.markdown("""
     
     .sandbox-frame {
         border: 2px solid #D4AF37; border-radius: 20px;
-        height: 550px; width: 100%; background: #fff; overflow: hidden;
+        height: 500px; width: 100%; background: #fff; overflow: hidden;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -106,15 +105,8 @@ if analyze_btn and url_input:
 
     with col_right:
         st.markdown("<h3 style='text-align:center; color:#D4AF37;'>📽️ Sandbox</h3>", unsafe_allow_html=True)
-        # حل مشكلة المعاينة الفارغة باستخدام HTML مدمج
-        preview_html = f"""
-        <html>
-            <body style="margin:0; padding:0;">
-                <iframe src="{url_input}" width="100%" height="100%" style="border:none;"></iframe>
-            </body>
-        </html>
-        """
-        b64_html = base64.b64encode(preview_html.encode()).decode()
-        st.markdown(f'<div class="sandbox-frame"><iframe src="data:text/html;base64,{b64_html}" width="100%" height="100%" style="border:none;"></iframe></div>', unsafe_allow_html=True)
+        # المعاينة مع رابط احتياطي في حال رفض الموقع العرض الداخلي
+        st.markdown(f'<div class="sandbox-frame"><iframe src="{url_input}" width="100%" height="100%" style="border:none;"></iframe></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="rtl" style="margin-top:10px; text-align:center;"><a href="{url_input}" target="_blank" style="color:#D4AF37; text-decoration:none;">🔗 اضغط هنا إذا لم تظهر المعاينة (فتح في نافذة خارجية)</a></div>', unsafe_allow_html=True)
 
 st.markdown("<br><p style='text-align:center; color:#D4AF37; opacity:0.5; font-family:Orbitron;'>Eng. Zaid Al-Janabi | 2026</p>", unsafe_allow_html=True)
