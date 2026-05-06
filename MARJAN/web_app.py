@@ -1,9 +1,10 @@
 import streamlit as st
 import math
+import base64
 from urllib.parse import urlparse
 
 # --- 1. إعدادات النظام ---
-st.set_page_config(page_title="Marjan Trace v13.0", layout="wide")
+st.set_page_config(page_title="Marjan Trace v14.0", layout="wide")
 
 # --- 2. محرك التحليل الجنائي ---
 def forensic_engine(url):
@@ -43,7 +44,7 @@ st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Orbitron:wght@700;900&display=swap');
     .stApp { background-color: #05070a !important; color: white; }
-    .rtl { direction: rtl; text-align: right; font-family: 'Cairo', sans-serif; unicode-bidi: bidi-override; }
+    .rtl { direction: rtl; text-align: right; font-family: 'Cairo', sans-serif; }
     
     .metric-row {
         display: flex; justify-content: space-around;
@@ -58,7 +59,6 @@ st.markdown("""
         border-radius: 12px; padding: 20px; margin-bottom: 20px;
     }
     
-    /* إطار المعاينة الفعلي */
     .sandbox-frame {
         border: 2px solid #D4AF37; border-radius: 20px;
         height: 550px; width: 100%; background: #fff; overflow: hidden;
@@ -106,7 +106,15 @@ if analyze_btn and url_input:
 
     with col_right:
         st.markdown("<h3 style='text-align:center; color:#D4AF37;'>📽️ Sandbox</h3>", unsafe_allow_html=True)
-        # تصحيح المعاينة: استخدام iframe لعرض الرابط فعلياً داخل الصندوق
-        st.markdown(f'<div class="sandbox-frame"><iframe src="{url_input}" width="100%" height="100%" style="border:none;"></iframe></div>', unsafe_allow_html=True)
+        # حل مشكلة المعاينة الفارغة باستخدام HTML مدمج
+        preview_html = f"""
+        <html>
+            <body style="margin:0; padding:0;">
+                <iframe src="{url_input}" width="100%" height="100%" style="border:none;"></iframe>
+            </body>
+        </html>
+        """
+        b64_html = base64.b64encode(preview_html.encode()).decode()
+        st.markdown(f'<div class="sandbox-frame"><iframe src="data:text/html;base64,{b64_html}" width="100%" height="100%" style="border:none;"></iframe></div>', unsafe_allow_html=True)
 
 st.markdown("<br><p style='text-align:center; color:#D4AF37; opacity:0.5; font-family:Orbitron;'>Eng. Zaid Al-Janabi | 2026</p>", unsafe_allow_html=True)
