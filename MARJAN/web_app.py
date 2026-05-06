@@ -2,143 +2,132 @@ import streamlit as st
 import requests
 import base64
 import re
+import math
 from urllib.parse import urlparse
 from datetime import datetime
 
-# --- إعدادات الصفحة ---
-st.set_page_config(page_title="Marjan Trace", page_icon="🛡️", layout="centered")
+# --- إعدادات الصفحة الاحترافية ---
+st.set_page_config(page_title="Marjan Trace v2.0", page_icon="🛡️", layout="wide")
 
-# --- قاعدة بيانات الجلسة اللحظية ---
-if 'threat_vault' not in st.session_state:
-    st.session_state.threat_vault = []
+# --- محرك حساب درجة الخطورة (The Engineering Heart) ---
+def calculate_marjan_score(url, vt_malicious, phishtank_status, local_alerts):
+    score = 0
+    # 1. نقاط بناءً على التحليل المحلي (40%)
+    score += len(local_alerts) * 10
+    
+    # 2. نقاط بناءً على التقارير العالمية (40%)
+    score += (vt_malicious * 5)
+    if phishtank_status:
+        score += 30
+        
+    # 3. نقاط بناءً على التشفير (20%)
+    if url.startswith("http://"):
+        score += 20
+        
+    return min(score, 100) # الحد الأقصى 100%
 
-# --- التنسيق البصري (ثبات الواجهة v6.3) ---
+# حساب العشوائية (Entropy) لكشف الروابط المشبوهة برمجياً
+def calculate_entropy(domain):
+    prob = [float(domain.count(c)) / len(domain) for c in dict.fromkeys(list(domain))]
+    entropy = - sum([p * math.log(p) / math.log(2.0) for p in prob])
+    return entropy
+
+# --- التنسيق البصري المتطور (Cyber-Security Theme) ---
 st.markdown("""
     <style>
+    .main { background-color: #0a0e14; }
     [data-testid="stAppViewContainer"] {
-        background-color: #05070a !important;
-        background-image: 
-            url("https://www.transparentpng.com/download/security/shield-security-icon-9.png"),
-            linear-gradient(rgba(212, 175, 55, 0.03) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(212, 175, 55, 0.03) 1px, transparent 1px),
-            radial-gradient(circle at center, #11141a 0%, #05070a 100%) !important;
-        background-position: center 40%, center, center, center !important;
-        background-repeat: no-repeat, repeat, repeat, no-repeat !important;
-        background-size: 380px auto, 30px 30px, 30px 30px, 100% 100% !important;
-        background-attachment: fixed !important;
+        background: radial-gradient(circle at top right, #1a202c, #0a0e14);
+        color: #e2e8f0;
     }
-    h1 { color: #D4AF37 !important; text-align: center; text-shadow: 0px 0px 20px rgba(212, 175, 55, 0.8) !important; font-family: 'Courier New', Courier, monospace; }
-    .stButton>button { width: 100%; background-color: #D4AF37 !important; color: black !important; font-weight: bold; border-radius: 12px; height: 3.8em; }
-    .heuristic-danger { padding: 15px; border-radius: 10px; border-right: 6px solid #ff4b4b; background-color: rgba(255, 75, 75, 0.25); color: #ff9999; text-align: right; margin-bottom: 10px; font-weight: bold; border-left: 1px solid rgba(255,75,75,0.4); }
-    .threat-intel { padding: 15px; border-radius: 10px; background-color: rgba(212, 175, 55, 0.1); border: 1px solid #D4AF37; color: #eee; text-align: right; margin-top: 15px; }
-    .latest-threats { padding: 15px; border-radius: 10px; background: rgba(255, 75, 75, 0.05); border: 1px solid rgba(255, 75, 75, 0.3); margin-top: 30px; margin-bottom: 50px; }
-    .footer { position: fixed; left: 0; bottom: 0; width: 100%; text-align: center; color: #D4AF37; padding: 10px; background-color: rgba(5, 7, 10, 0.98); border-top: 1px solid #D4AF37; z-index: 100; }
+    .stMetric { background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 15px; border: 1px solid rgba(212, 175, 55, 0.2); }
+    h1 { color: #D4AF37 !important; font-family: 'Orbitron', sans-serif; letter-spacing: 2px; }
+    .report-card { 
+        background: rgba(15, 23, 42, 0.8); 
+        padding: 25px; 
+        border-radius: 20px; 
+        border-left: 5px solid #D4AF37;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+    }
+    .footer { 
+        position: fixed; left: 0; bottom: 0; width: 100%; 
+        background: rgba(10, 14, 20, 0.95); 
+        color: #D4AF37; text-align: center; padding: 15px;
+        border-top: 1px solid #D4AF37; font-weight: bold;
+    }
     </style>
     """, unsafe_allow_html=True)
 
-# --- محرك التحليل الشامل (Marjan Ultimate Intelligence) ---
-def analyze_everything(url):
-    reasons = []
-    parsed = urlparse(url)
-    domain = parsed.netloc.lower()
-    path = parsed.path.lower()
-    
-    # 1. تحليل النطاقات (TLD & Entropy)
-    bad_tlds = ['.sbs', '.xyz', '.top', '.zip', '.online', '.site', '.monster']
-    if any(domain.endswith(tld) for tld in bad_tlds):
-        reasons.append(f"❗ نطاق مشبوه (TLD): الامتداد .{domain.split('.')[-1]} يسجل أعلى معدلات استضافة التصيد.")
+# --- واجهة المستخدم (Layout) ---
+col1, col2, col3 = st.columns([1, 2, 1])
+with col2:
+    st.markdown("<h1 style='text-align:center;'>🛡️ MARJAN TRACE v2.0</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align:center; color:#888;'>Advanced Cyber Intelligence & Forensic Analysis</p>", unsafe_allow_html=True)
 
-    # 2. كشف انتحال الصفة (Brand Hijacking) - تم تصحيح علامات التنصيص هنا
-    brands = ['allegro', 'netflix', 'bank', 'wix', 'google', 'microsoft', 'secure', 'login', 'update']
-    if any(b in domain for b in brands):
-        reasons.append("🚨 انتحال هوية: تم رصد اسم مؤسسة أو كلمة أمان داخل نطاق غير رسمي.")
+# مدخل الرابط
+target_url = st.text_input("إدخال الهدف (Target URL):", placeholder="https://example.com")
 
-    # 3. تحليل هيكل المسار (Path & Media Analysis)
-    if any(p in path for p in ['/media/', '/na/', '/verify/', '/cdn/', '/assets/']):
-        reasons.append("🕵️ تحليل المسار: الرابط يوجه لملفات وسائط داخل مجلدات تستخدم عادة لتخزين صفحات التصيد.")
-
-    # 4. كشف الروابط غير المشفرة
-    if url.startswith("http://"):
-        reasons.append("🔓 اتصال مكشوف: الرابط لا يستخدم بروتوكول HTTPS، البيانات معرضة للاختراق.")
-
-    return list(set(reasons))
-
-# --- وظيفة جلب البيانات من المحركات العالمية ---
-def global_intelligence_fetch(url):
-    external_alerts = []
-    try:
-        res = requests.post("https://checkurl.phishtank.com/checkurl/", data={'url': url, 'format': 'json'}, timeout=12)
-        if res.status_code == 200 and res.json().get('results', {}).get('in_database'):
-            external_alerts.append("🐟 PhishTank Alert: الرابط مصنف عالمياً كتهديد نشط.")
-    except: pass
-    return external_alerts
-
-# --- الواجهة الرئيسية ---
-st.markdown("<h1>🛡️ Marjan Trace</h1>", unsafe_allow_html=True)
-st.markdown("<h3 style='text-align:center; color:#D4AF37;'>نظام التحليل الجنائي الرقمي</h3>", unsafe_allow_html=True)
-
-target_url = st.text_input("", placeholder="أدخل أي رابط للتحليل الشامل...")
-
-if st.button("تفعيل بروتوكول الكشف الذكي"):
+if st.button("RUN FORENSIC ANALYSIS"):
     if target_url:
-        if target_url.startswith("ttp"): target_url = "h" + target_url
-        
-        API_KEY = "22e03b88a0526e3d43b85556438c2d5895ccb0ef97771cff2471edab14cac85b"
-        headers = {"x-apikey": API_KEY}
-        url_id = base64.urlsafe_b64encode(target_url.encode()).decode().strip("=")
-        
-        with st.spinner("> جاري تنفيذ المسح الشامل وجمع الاستخبارات العالمية..."):
-            st.markdown("---")
+        # تصحيح البروتوكول
+        if not target_url.startswith(("http://", "https://")):
+            target_url = "https://" + target_url
+
+        with st.spinner("Executing Forensic Protocols..."):
+            # --- 1. التحليل المحلي الهيكلي ---
+            local_reasons = []
+            parsed = urlparse(target_url)
+            domain = parsed.netloc.lower()
             
-            all_alerts = analyze_everything(target_url)
-            all_alerts.extend(global_intelligence_fetch(target_url))
+            # فحص الـ Entropy
+            if calculate_entropy(domain) > 3.8:
+                local_reasons.append("⚠️ عشوائية عالية: اسم النطاق يبدو وكأنه مولد آلياً (DGA Detection).")
             
+            # فحص الـ TLDs
+            if any(domain.endswith(tld) for tld in ['.xyz', '.top', '.zip', '.monster', '.bid']):
+                local_reasons.append("🚩 نطاق عالي الخطورة: استخدام TLD مرتبط تاريخياً بهجمات سيبرانية.")
+
+            # --- 2. جلب الاستخبارات الخارجية ---
+            vt_malicious = 0
+            phishtank_hit = False
+            
+            # VirusTotal
+            API_KEY = "22e03b88a0526e3d43b85556438c2d5895ccb0ef97771cff2471edab14cac85b"
+            url_id = base64.urlsafe_b64encode(target_url.encode()).decode().strip("=")
             try:
-                vt_res = requests.get(f"https://www.virustotal.com/api/v3/urls/{url_id}", headers=headers, timeout=12)
+                vt_res = requests.get(f"https://www.virustotal.com/api/v3/urls/{url_id}", headers={"x-apikey": API_KEY}, timeout=10)
                 if vt_res.status_code == 200:
-                    malicious = vt_res.json()['data']['attributes'].get('last_analysis_stats', {}).get('malicious', 0)
-                    if malicious > 0:
-                        all_alerts.append(f"📡 VirusTotal: تم رصد خطورة بواسطة {malicious} مركز أمني دولي.")
+                    vt_malicious = vt_res.json()['data']['attributes']['last_analysis_stats']['malicious']
             except: pass
 
-            if all_alerts:
-                st.subheader("🕵️ نتائج التحليل الشامل:")
-                for alert in all_alerts:
-                    st.markdown(f'<div class="heuristic-danger">{alert}</div>', unsafe_allow_html=True)
-                
-                st.markdown(f"""
-                <div class="threat-intel">
-                    <h4 style="color:#D4AF37; margin-bottom:10px;">⚠️ التوصية الأمنية (Eng. Zaid Advisory):</h4>
-                    <p style="color:#eee; font-size:0.9em;">تم تصنيف هذا الرابط كخطر بناءً على تحليل السلوك وقواعد البيانات العالمية اللحظية.</p>
-                    <p style="font-size: 0.95em; color: #ff4b4b; font-weight: bold; border-top: 1px solid rgba(212,175,55,0.2); padding-top: 10px;">
-                        💡 القرار: حظر الرابط فوراً وعدم استخدامه في بيئة العمل.
-                    </p>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                st.session_state.threat_vault.insert(0, {
-                    "url": target_url[:30] + "...", 
-                    "type": "تهديد مكتشف", 
-                    "time": datetime.now().strftime("%H:%M")
-                })
-            else:
-                st.success("✅ محرك مرجان: لم يتم رصد تهديدات واضحة حالياً. يرجى المراقبة المستمرة.")
+            # --- 3. حساب النتيجة النهائية ---
+            final_score = calculate_marjan_score(target_url, vt_malicious, phishtank_hit, local_reasons)
 
-            st.info(f"🔗 [السجل الفني الكامل للرابط (Live)](https://www.virustotal.com/gui/url/{url_id}/behavior)")
+            # --- عرض النتائج (Dashboard Style) ---
+            st.markdown("---")
+            m1, m2, m3 = st.columns(3)
+            m1.metric("Marjan Risk Level", f"{final_score}%", delta="- High Risk" if final_score > 50 else "Safe", delta_color="inverse")
+            m2.metric("VT Detections", vt_malicious)
+            m3.metric("Entropy Score", round(calculate_entropy(domain), 2))
 
-# --- سجل التهديدات اللحظية ---
+            st.markdown(f"""
+            <div class="report-card">
+                <h3 style="color:#D4AF37;">📋 Forensic Report Summary</h3>
+                <p><b>Target:</b> {target_url}</p>
+                <hr style="border-color:rgba(212,175,55,0.1);">
+                {"".join([f"<p style='color:#ff4b4b;'>• {r}</p>" for r in local_reasons])}
+                {f"<p style='color:#ff4b4b;'>• تم رصد تهديد في {vt_malicious} محركات بحث عالمية.</p>" if vt_malicious > 0 else ""}
+                <br>
+                <h4 style="color:#D4AF37;">💡 Eng. Zaid's Recommendation:</h4>
+                <p style="background:rgba(212,175,55,0.1); padding:10px; border-radius:10px;">
+                    {'الرابط شديد الخطورة، يمنع فتحه نهائياً.' if final_score > 50 else 'الرابط يبدو سليماً، لكن توخى الحذر دائماً.'}
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+
+# --- تذييل الصفحة (حقوق المطور) ---
 st.markdown(f"""
-    <div class="latest-threats">
-        <h4 style="color:#ff4b4b; margin-bottom:10px; border-bottom:1px solid rgba(255,75,75,0.2);">🔴 سجل التهديدات اللحظية (Live Storage)</h4>
-        <table style="width:100%; color:#eee; font-size:0.85em; text-align:right;">
-            <tr style="color:#D4AF37;">
-                <th>الرابط</th>
-                <th>نوع التهديد</th>
-                <th>الوقت</th>
-            </tr>
-            {"".join([f"<tr><td>{t['url']}</td><td>{t['type']}</td><td>{t['time']}</td></tr>" for t in st.session_state.threat_vault[:5]])}
-        </table>
+    <div class="footer">
+        Developed by: Eng. Zaid Al-Janabi | Department of Cybersecurity Engineering | Al-Maarif University
     </div>
 """, unsafe_allow_html=True)
-
-st.markdown(f'<div class="footer">Eng. Zaid Al-Janabi | Marjan Trace v6.3 | Advanced Forensic Detection</div>', unsafe_allow_html=True)
