@@ -105,8 +105,7 @@ if analyze_btn and url_input:
 
     with col_right:
         st.markdown("<h3 style='text-align:center; color:#D4AF37;'>📽️ Sandbox</h3>", unsafe_allow_html=True)
-        # المعاينة مع رابط احتياطي في حال رفض الموقع العرض الداخلي
+        # تم الإبقاء على المعاينة الداخلية فقط وحذف الرابط الخارجي لزيادة الأمان
         st.markdown(f'<div class="sandbox-frame"><iframe src="{url_input}" width="100%" height="100%" style="border:none;"></iframe></div>', unsafe_allow_html=True)
-        st.markdown(f'<div class="rtl" style="margin-top:10px; text-align:center;"><a href="{url_input}" target="_blank" style="color:#D4AF37; text-decoration:none;">🔗 اضغط هنا إذا لم تظهر المعاينة (فتح في نافذة خارجية)</a></div>', unsafe_allow_html=True)
 
 st.markdown("<br><p style='text-align:center; color:#D4AF37; opacity:0.5; font-family:Orbitron;'>Eng. Zaid Al-Janabi | 2026</p>", unsafe_allow_html=True)
